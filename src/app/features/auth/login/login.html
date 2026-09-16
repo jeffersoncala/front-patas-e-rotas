@@ -1,0 +1,135 @@
+<div class="login">
+  <!-- Painel de apresentação: some em telas pequenas -->
+  <section class="hero" aria-hidden="true">
+    <div class="hero__paws">
+      @for (paw of [1, 2, 3, 4, 5, 6]; track paw) {
+        <svg class="hero__paw" viewBox="0 0 24 24" fill="currentColor">
+          <ellipse cx="7" cy="8.5" rx="2.4" ry="3.1" />
+          <ellipse cx="12" cy="6.4" rx="2.4" ry="3.2" />
+          <ellipse cx="17" cy="8.5" rx="2.4" ry="3.1" />
+          <path
+            d="M12 11c3.3 0 6 2.3 6 5.1 0 2.2-1.8 3.9-4 3.9-1 0-1.5-.3-2-.3s-1 .3-2 .3c-2.2 0-4-1.7-4-3.9C6 13.3 8.7 11 12 11Z"
+          />
+        </svg>
+      }
+    </div>
+
+    <div class="hero__content">
+      <h2 class="hero__title">Todo passeio rende<br />uma boa história.</h2>
+      <p class="hero__text">
+        Marque encontros com outros bichos da vizinhança, registre as rotas favoritas e acompanhe
+        quantos quilômetros de rabo abanando vocês já somaram.
+      </p>
+
+      <ul class="hero__stats">
+        <li><strong>12 mil</strong><span>passeios registrados</span></li>
+        <li><strong>3,4 mil</strong><span>encontros marcados</span></li>
+        <li><strong>860</strong><span>parques mapeados</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Formulário -->
+  <main class="panel">
+    <div class="panel__inner">
+      <header class="brand">
+        <span class="brand__mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <ellipse cx="7" cy="8.5" rx="2.4" ry="3.1" />
+            <ellipse cx="12" cy="6.4" rx="2.4" ry="3.2" />
+            <ellipse cx="17" cy="8.5" rx="2.4" ry="3.1" />
+            <path
+              d="M12 11c3.3 0 6 2.3 6 5.1 0 2.2-1.8 3.9-4 3.9-1 0-1.5-.3-2-.3s-1 .3-2 .3c-2.2 0-4-1.7-4-3.9C6 13.3 8.7 11 12 11Z"
+            />
+          </svg>
+        </span>
+        <p class="brand__name">Patas <span>&</span> Rotas</p>
+      </header>
+
+      <h1 class="panel__title">Bem-vindo de volta!</h1>
+      <p class="panel__subtitle">
+        Entre para ver os encontros do rolê e registrar o próximo passeio.
+      </p>
+
+      @if (erroGeral(); as erro) {
+        <p class="alert" role="alert">{{ erro }}</p>
+      }
+
+      <form class="form" [formGroup]="form" (ngSubmit)="entrar()" novalidate>
+        <div class="field">
+          <label class="field__label" for="email">E-mail</label>
+          <input
+            id="email"
+            type="email"
+            class="field__input"
+            formControlName="email"
+            placeholder="tutor@exemplo.com"
+            autocomplete="email"
+            inputmode="email"
+            [class.field__input--invalid]="emailErro()"
+            [attr.aria-invalid]="emailErro() ? 'true' : null"
+            [attr.aria-describedby]="emailErro() ? 'email-erro' : null"
+          />
+          @if (emailErro(); as erro) {
+            <p class="field__error" id="email-erro" role="alert">{{ erro }}</p>
+          }
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="senha">Senha</label>
+          <div class="field__wrap">
+            <input
+              id="senha"
+              class="field__input"
+              formControlName="senha"
+              [type]="senhaVisivel() ? 'text' : 'password'"
+              placeholder="Sua senha secreta"
+              autocomplete="current-password"
+              [class.field__input--invalid]="senhaErro()"
+              [attr.aria-invalid]="senhaErro() ? 'true' : null"
+              [attr.aria-describedby]="senhaErro() ? 'senha-erro' : null"
+            />
+            <button
+              type="button"
+              class="field__toggle"
+              (click)="alternarSenha()"
+              [attr.aria-pressed]="senhaVisivel()"
+            >
+              {{ senhaVisivel() ? 'Ocultar' : 'Mostrar' }}
+              <span class="sr-only">senha</span>
+            </button>
+          </div>
+          @if (senhaErro(); as erro) {
+            <p class="field__error" id="senha-erro" role="alert">{{ erro }}</p>
+          }
+        </div>
+
+        <div class="form__row">
+          <label class="check">
+            <input type="checkbox" formControlName="lembrarMe" />
+            <span>Manter conectado</span>
+          </label>
+          <a routerLink="/recuperar-senha">Esqueci minha senha</a>
+        </div>
+
+        <button type="submit" class="btn btn--primary" [disabled]="enviando()">
+          {{ enviando() ? 'Entrando…' : 'Entrar' }}
+        </button>
+      </form>
+
+      <div class="divider"><span>ou continue com</span></div>
+
+      <div class="socials">
+        @for (provider of providers; track provider.id) {
+          <button type="button" class="btn btn--ghost" (click)="entrarCom(provider.id)">
+            {{ provider.label }}
+          </button>
+        }
+      </div>
+
+      <p class="signup">
+        Primeira vez por aqui? <a routerLink="/cadastro">Crie o perfil do seu pet</a>
+      </p>
+    </div>
+  </main>
+</div>

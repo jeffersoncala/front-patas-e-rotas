@@ -1,0 +1,173 @@
+<div class="page">
+  <!-- Boas-vindas e ação principal -->
+  <section class="welcome">
+    <div>
+      <p class="welcome__eyebrow">{{ saudacao() }}, {{ perfil()?.tutor }}!</p>
+      <h1 class="welcome__title">Bora passear com {{ perfil()?.pet }} hoje?</h1>
+      <p class="welcome__text">
+        @if (faltaMetaKm() > 0) {
+          Faltam {{ formatarKm(faltaMetaKm()) }} km para bater a meta da semana.
+        } @else {
+          Meta da semana batida! Hoje o passeio é de comemoração.
+        }
+      </p>
+    </div>
+    <a class="btn btn--primary welcome__cta" routerLink="/passeios/novo">Registrar passeio</a>
+  </section>
+
+  <!-- Resumo da semana -->
+  <section class="stats" aria-labelledby="stats-titulo">
+    <h2 id="stats-titulo" class="sr-only">Resumo da semana</h2>
+
+    <div class="stat">
+      <span class="stat__label">Distância na semana</span>
+      <strong class="stat__value">{{ formatarKm(kmSemana()) }} <small>km</small></strong>
+      <div
+        class="meter"
+        role="progressbar"
+        aria-label="Meta semanal"
+        [attr.aria-valuenow]="progressoMeta()"
+        aria-valuemin="0"
+        aria-valuemax="100"
+      >
+        <span class="meter__fill" [style.width.%]="progressoMeta()"></span>
+      </div>
+      <span class="stat__hint">{{ progressoMeta() }}% da meta de {{ metaSemanalKm() }} km</span>
+    </div>
+
+    <div class="stat">
+      <span class="stat__label">Passeios</span>
+      <strong class="stat__value">{{ passeiosSemana() }}</strong>
+      <span class="stat__hint">nos últimos 7 dias</span>
+    </div>
+
+    <div class="stat">
+      <span class="stat__label">Encontros confirmados</span>
+      <strong class="stat__value">{{ encontrosConfirmados() }}</strong>
+      <span class="stat__hint">nos próximos dias</span>
+    </div>
+  </section>
+
+  <div class="grid">
+    <!-- Feed de passeios -->
+    <section class="card" aria-labelledby="feed-titulo">
+      <header class="card__header">
+        <h2 id="feed-titulo" class="card__title">Passeios da vizinhança</h2>
+      </header>
+
+      <ul class="list">
+        @for (passeio of passeios(); track passeio.id) {
+          <li class="post">
+            <span class="post__avatar" aria-hidden="true">{{ passeio.pet[0] }}</span>
+            <div class="post__body">
+              <p class="post__meta">
+                <strong>{{ passeio.pet }}</strong> com {{ passeio.meu ? 'você' : passeio.tutor }}
+                <span>· {{ tempoRelativo(passeio.data) }}</span>
+              </p>
+              @if (passeio.texto) {
+                <p class="post__text">{{ passeio.texto }}</p>
+              }
+              <div class="post__footer">
+                @if (passeio.rotaId) {
+                  <a class="tag" [routerLink]="['/rotas', passeio.rotaId]">
+                    {{ passeio.rotaNome }} · {{ formatarKm(passeio.distanciaKm) }} km
+                  </a>
+                } @else {
+                  <span class="tag">
+                    {{ passeio.rotaNome || 'Passeio livre' }} · {{ formatarKm(passeio.distanciaKm) }} km
+                  </span>
+                }
+                <button
+                  type="button"
+                  class="like"
+                  [class.like--ativo]="passeio.curtido"
+                  [attr.aria-pressed]="passeio.curtido"
+                  (click)="alternarCurtida(passeio.id)"
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z"
+                    />
+                  </svg>
+                  {{ passeio.curtidas }}
+                  <span class="sr-only">curtidas, curtir passeio de {{ passeio.pet }}</span>
+                </button>
+              </div>
+            </div>
+          </li>
+        }
+      </ul>
+    </section>
+
+    <aside class="side">
+      <!-- Próximos encontros -->
+      <section class="card" aria-labelledby="encontros-titulo">
+        <header class="card__header">
+          <h2 id="encontros-titulo" class="card__title">Próximos encontros</h2>
+          <a routerLink="/encontros" class="card__link">Ver todos</a>
+        </header>
+
+        <app-mapa rotulo="Mapa dos próximos encontros" [marcadores]="marcadores()" />
+
+        <ul class="list">
+          @for (encontro of encontros(); track encontro.id) {
+            @let data = partesData(encontro.data);
+            <li class="item">
+              <div class="calendario" aria-hidden="true">
+                <span>{{ data.semana }}</span>
+                <strong>{{ data.dia }}</strong>
+              </div>
+              <div class="item__info">
+                <a class="item__title" [routerLink]="['/encontros', encontro.id]">
+                  {{ encontro.titulo }}
+                </a>
+                <p class="item__meta">
+                  {{ encontro.local }} · {{ data.dia }} {{ data.mes }}, {{ formatarHora(encontro.data) }}
+                  · {{ encontro.confirmados }} pets
+                </p>
+              </div>
+              <button
+                type="button"
+                class="chip"
+                [class.chip--ativo]="encontro.vou"
+                [attr.aria-pressed]="encontro.vou"
+                (click)="alternarPresenca(encontro.id)"
+              >
+                {{ encontro.vou ? 'Vou ✓' : 'Vou!' }}
+                <span class="sr-only">ao encontro {{ encontro.titulo }}</span>
+              </button>
+            </li>
+          }
+        </ul>
+      </section>
+
+      <!-- Rotas favoritas -->
+      <section class="card" aria-labelledby="rotas-titulo">
+        <header class="card__header">
+          <h2 id="rotas-titulo" class="card__title">Rotas favoritas</h2>
+          <a routerLink="/rotas" class="card__link">Explorar</a>
+        </header>
+
+        <ul class="list">
+          @for (rota of rotasFavoritas(); track rota.id) {
+            <li class="item">
+              <span class="icone-rota" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M5 19c3-6 11-2 14-8M5 19a2 2 0 1 0 0-.01M19 11a2 2 0 1 0 0-.01" />
+                </svg>
+              </span>
+              <div class="item__info">
+                <a class="item__title" [routerLink]="['/rotas', rota.id]">{{ rota.nome }}</a>
+                <p class="item__meta">
+                  {{ rota.bairro }} · {{ formatarKm(rota.distanciaKm) }} km · {{ rota.duracaoMin }} min
+                </p>
+              </div>
+            </li>
+          } @empty {
+            <li class="vazio">Favorite rotas para vê-las aqui.</li>
+          }
+        </ul>
+      </section>
+    </aside>
+  </div>
+</div>

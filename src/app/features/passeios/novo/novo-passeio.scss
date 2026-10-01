@@ -1,0 +1,55 @@
+.passeio {
+  display: grid;
+  gap: 1.5rem;
+  align-items: start;
+
+  @media (min-width: 60rem) {
+    grid-template-columns: minmax(0, 1fr) 22rem;
+  }
+}
+
+.passeio__mapa {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+
+  app-mapa {
+    height: clamp(20rem, 55vh, 34rem);
+  }
+}
+
+.barra {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.barra__acoes {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.cronometro {
+  font-size: 1.6rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.painel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+
+  @media (min-width: 60rem) {
+    position: sticky;
+    top: 1rem;
+  }
+}
+
+.painel__distancia {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}

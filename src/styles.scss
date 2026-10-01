@@ -66,7 +66,9 @@ button {
   cursor: pointer;
 }
 
-input {
+input,
+textarea,
+select {
   font: inherit;
   color: inherit;
 }
@@ -81,7 +83,7 @@ a {
 }
 
 /* Foco visível e consistente em todos os controles interativos */
-:where(a, button, input, [tabindex]):focus-visible {
+:where(a, button, input, textarea, select, [tabindex]):focus-visible {
   outline: 3px solid var(--accent-500);
   outline-offset: 2px;
 }
@@ -159,6 +161,16 @@ a {
   }
 }
 
+textarea.field__input {
+  min-height: 6rem;
+  resize: vertical;
+}
+
+.field__hint {
+  font-size: 0.8rem;
+  color: var(--ink-500);
+}
+
 .field__wrap .field__input {
   padding-right: 5.5rem;
 }
@@ -202,6 +214,10 @@ a {
 }
 
 .btn {
+  display: inline-flex;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: center;
   padding: 0.9rem 1rem;
   font-weight: 800;
   border: 0;
@@ -215,9 +231,18 @@ a {
     transform: translateY(1px);
   }
 
+  &:hover {
+    text-decoration: none;
+  }
+
   &:disabled {
     cursor: progress;
     opacity: 0.7;
+  }
+
+  &--sm {
+    padding: 0.55rem 1rem;
+    font-size: 0.9rem;
   }
 
   &--primary {
@@ -227,6 +252,26 @@ a {
 
     &:hover:not(:disabled) {
       background: var(--brand-600);
+    }
+  }
+
+  &--secondary {
+    color: var(--brand-700);
+    background: var(--surface);
+    border: 1.5px solid var(--brand-500);
+
+    &:hover:not(:disabled) {
+      background: var(--brand-100);
+    }
+  }
+
+  &--danger {
+    color: var(--danger-600);
+    background: var(--surface);
+    border: 1.5px solid var(--danger-600);
+
+    &:hover {
+      background: var(--danger-100);
     }
   }
 
@@ -241,4 +286,266 @@ a {
       background: var(--surface-muted);
     }
   }
+}
+
+.alert {
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--danger-600);
+  background: var(--danger-100);
+  border-radius: var(--radius-sm);
+
+  &--sucesso {
+    color: var(--accent-600);
+    background: var(--accent-100);
+  }
+}
+
+/* ==========================================================================
+   Blocos das telas internas
+   ========================================================================== */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 72rem;
+  padding: clamp(1.25rem, 4vw, 2rem);
+  margin: 0 auto;
+}
+
+.page__header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+.page__title {
+  font-size: clamp(1.6rem, 3vw, 2.1rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.page__subtitle {
+  margin-top: 0.35rem;
+  color: var(--ink-500);
+}
+
+.voltar {
+  display: inline-flex;
+  gap: 0.35rem;
+  align-items: center;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.card {
+  padding: 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--ink-100);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.card__header {
+  display: flex;
+  gap: 1rem;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.card__title {
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.card__link {
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.list {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+
+  > li + li {
+    border-top: 1px solid var(--ink-100);
+  }
+}
+
+.item {
+  display: flex;
+  gap: 0.8rem;
+  align-items: center;
+  padding: 0.85rem 0;
+}
+
+.item__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.item__title {
+  font-weight: 700;
+  color: var(--ink-900);
+}
+
+.item__meta {
+  margin-top: 0.15rem;
+  font-size: 0.8rem;
+  color: var(--ink-500);
+}
+
+/* Quadradinho de data dos encontros */
+.calendario {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  line-height: 1;
+  color: var(--brand-700);
+  background: var(--brand-100);
+  border-radius: var(--radius-sm);
+
+  span {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  strong {
+    font-size: 1.15rem;
+    font-weight: 800;
+  }
+}
+
+/* Ícone quadrado verde-água das rotas */
+.icone-rota {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  color: var(--accent-600);
+  background: var(--accent-100);
+  border-radius: var(--radius-sm);
+
+  svg {
+    width: 1.3rem;
+  }
+}
+
+.chip {
+  flex-shrink: 0;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--brand-700);
+  background: var(--surface);
+  border: 1.5px solid var(--brand-500);
+  border-radius: var(--radius-pill);
+
+  &:hover {
+    background: var(--brand-100);
+  }
+
+  &--ativo {
+    color: #fff;
+    background: var(--accent-500);
+    border-color: var(--accent-500);
+
+    &:hover {
+      background: var(--accent-600);
+    }
+  }
+}
+
+.tag {
+  display: inline-block;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--accent-600);
+  background: var(--accent-100);
+  border-radius: var(--radius-pill);
+}
+
+/* Grupo de botões de filtro / escolha única */
+.tabs {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  background: var(--surface);
+  border: 1px solid var(--ink-100);
+  border-radius: var(--radius-pill);
+}
+
+.tabs__item {
+  padding: 0.45rem 0.95rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--ink-500);
+  background: none;
+  border: 0;
+  border-radius: var(--radius-pill);
+
+  &:hover {
+    color: var(--ink-900);
+  }
+
+  &[aria-pressed='true'],
+  &[aria-checked='true'] {
+    color: var(--brand-700);
+    background: var(--brand-100);
+  }
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--ink-100);
+  border-radius: var(--radius-md);
+}
+
+.stat__label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--ink-500);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.stat__value {
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--ink-900);
+
+  small {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ink-500);
+  }
+}
+
+.stat__hint {
+  font-size: 0.85rem;
+  color: var(--ink-500);
+}
+
+.vazio {
+  padding: 2rem 1rem;
+  color: var(--ink-500);
+  text-align: center;
 }

@@ -1,0 +1,48 @@
+<app-auth-layout
+  heroTitulo="Até o melhor farejador perde uma pista."
+  heroTexto="Acontece com todo mundo. Mandamos um link para você criar uma senha nova e voltar logo para os passeios."
+  titulo="Esqueceu a senha?"
+  subtitulo="Informe o e-mail da conta e enviaremos um link para criar uma nova."
+>
+  <div role="status">
+    @if (enviadoPara(); as email) {
+      <p class="alert alert--sucesso">
+        Pronto! Se houver uma conta para <strong>{{ email }}</strong>, o link de recuperação chega
+        em instantes. Confira também a caixa de spam.
+      </p>
+    }
+  </div>
+
+  @if (erroGeral(); as erro) {
+    <p class="alert" role="alert">{{ erro }}</p>
+  }
+
+  @if (!enviadoPara()) {
+    <form class="auth__form" [formGroup]="form" (ngSubmit)="enviar()" novalidate>
+      <div class="field">
+        <label class="field__label" for="email">E-mail</label>
+        <input
+          id="email"
+          type="email"
+          class="field__input"
+          formControlName="email"
+          placeholder="tutor@exemplo.com"
+          autocomplete="email"
+          inputmode="email"
+          [class.field__input--invalid]="emailErro()"
+          [attr.aria-invalid]="emailErro() ? 'true' : null"
+          [attr.aria-describedby]="emailErro() ? 'email-erro' : null"
+        />
+        @if (emailErro(); as erro) {
+          <p class="field__error" id="email-erro" role="alert">{{ erro }}</p>
+        }
+      </div>
+
+      <button type="submit" class="btn btn--primary" [disabled]="enviando()">
+        {{ enviando() ? 'Enviando…' : 'Enviar link' }}
+      </button>
+    </form>
+  }
+
+  <p class="auth__rodape">Lembrou a senha? <a routerLink="/login">Voltar para o login</a></p>
+</app-auth-layout>

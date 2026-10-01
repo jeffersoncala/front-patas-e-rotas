@@ -1,0 +1,196 @@
+<section class="page">
+  <a class="voltar" routerLink="/"><span aria-hidden="true">←</span> Voltar para o início</a>
+
+  <header class="page__header">
+    <div>
+      <h1 class="page__title">Registrar passeio</h1>
+      <p class="page__subtitle">
+        @if (rotaBase(); as base) {
+          Passeando na rota <strong>{{ base.nome }}</strong> · {{ base.bairro }}
+        } @else {
+          Desenhe o trajeto no mapa ou grave com o GPS enquanto passeia.
+        }
+      </p>
+    </div>
+    <div class="tabs" role="group" aria-label="Como registrar o trajeto">
+      @for (m of modos; track m.id) {
+        <button
+          type="button"
+          class="tabs__item"
+          [attr.aria-pressed]="modo() === m.id"
+          (click)="escolherModo(m.id)"
+        >
+          {{ m.label }}
+        </button>
+      }
+    </div>
+  </header>
+
+  <div class="passeio">
+    <div class="passeio__mapa">
+      <app-mapa
+        [rotulo]="
+          modo() === 'desenho'
+            ? 'Mapa do passeio. Clique para adicionar pontos ao trajeto.'
+            : 'Mapa do passeio com sua posição atual'
+        "
+        [centro]="centro()"
+        [zoom]="16"
+        [enquadrar]="enquadrar()"
+        [trajetos]="trajetos()"
+        [marcadores]="marcadores()"
+        (cliqueMapa)="adicionarPonto($event)"
+      />
+
+      @if (modo() === 'desenho') {
+        <div class="barra">
+          <p class="field__hint">
+            Toque no mapa para marcar cada trecho. {{ pontos().length }}
+            {{ pontos().length === 1 ? 'ponto' : 'pontos' }} marcados.
+          </p>
+          <div class="barra__acoes">
+            <button
+              type="button"
+              class="btn btn--secondary btn--sm"
+              [disabled]="!pontos().length"
+              (click)="desfazerPonto()"
+            >
+              Desfazer ponto
+            </button>
+            <button
+              type="button"
+              class="btn btn--danger btn--sm"
+              [disabled]="!pontos().length"
+              (click)="limpar()"
+            >
+              Limpar
+            </button>
+          </div>
+        </div>
+      } @else {
+        <div class="barra">
+          <p class="cronometro" role="timer" aria-label="Tempo gravado">{{ cronometro() }}</p>
+          <div class="barra__acoes">
+            @switch (estadoGps()) {
+              @case ('gravando') {
+                <button type="button" class="btn btn--secondary btn--sm" (click)="pausar()">
+                  Pausar
+                </button>
+                <button type="button" class="btn btn--danger btn--sm" (click)="encerrar()">
+                  Encerrar
+                </button>
+              }
+              @case ('pausado') {
+                <button type="button" class="btn btn--primary btn--sm" (click)="iniciar()">
+                  Continuar
+                </button>
+                <button type="button" class="btn btn--danger btn--sm" (click)="encerrar()">
+                  Encerrar
+                </button>
+              }
+              @default {
+                <button type="button" class="btn btn--primary btn--sm" (click)="iniciar()">
+                  {{ estadoGps() === 'encerrado' ? 'Gravar de novo' : 'Iniciar' }}
+                </button>
+              }
+            }
+          </div>
+        </div>
+        @if (erroGps(); as erro) {
+          <p class="alert" role="alert">{{ erro }}</p>
+        }
+      }
+    </div>
+
+    <form class="card painel" [formGroup]="form" (ngSubmit)="registrar()" novalidate>
+      <div class="painel__distancia">
+        <span class="stat__label">Distância</span>
+        <strong class="stat__value" aria-live="polite" data-testid="distancia">
+          {{ formatarKm(distanciaKm()) }} <small>km</small>
+        </strong>
+        @if (pontosErro(); as erro) {
+          <span class="field__error" role="alert">{{ erro }}</span>
+        }
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="duracao">Duração (minutos)</label>
+        <input
+          id="duracao"
+          class="field__input"
+          type="number"
+          min="1"
+          inputmode="numeric"
+          formControlName="duracaoMin"
+          [readOnly]="modo() === 'gps'"
+          [class.field__input--invalid]="duracaoErro()"
+          [attr.aria-invalid]="!!duracaoErro()"
+          [attr.aria-describedby]="duracaoErro() ? 'duracao-erro' : null"
+        />
+        @if (modo() === 'gps') {
+          <span class="field__hint">Preenchida pelo cronômetro.</span>
+        }
+        @if (duracaoErro(); as erro) {
+          <span id="duracao-erro" class="field__error" role="alert">{{ erro }}</span>
+        }
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="texto">Como foi o passeio?</label>
+        <textarea
+          id="texto"
+          class="field__input"
+          formControlName="texto"
+          maxlength="500"
+          placeholder="Cheirou todos os postes, fez dois amigos novos..."
+        ></textarea>
+      </div>
+
+      @if (!rotaBase()) {
+        <label class="check">
+          <input type="checkbox" formControlName="salvarRota" />
+          Salvar como rota favorita
+        </label>
+
+        @if (salvarRota()) {
+          <div class="field">
+            <label class="field__label" for="nome-rota">Nome da rota</label>
+            <input
+              id="nome-rota"
+              class="field__input"
+              formControlName="nomeRota"
+              [class.field__input--invalid]="nomeRotaErro()"
+              [attr.aria-invalid]="!!nomeRotaErro()"
+              [attr.aria-describedby]="nomeRotaErro() ? 'nome-rota-erro' : null"
+            />
+            @if (nomeRotaErro(); as erro) {
+              <span id="nome-rota-erro" class="field__error" role="alert">{{ erro }}</span>
+            }
+          </div>
+          <div class="field">
+            <label class="field__label" for="bairro-rota">Bairro</label>
+            <input
+              id="bairro-rota"
+              class="field__input"
+              formControlName="bairroRota"
+              [class.field__input--invalid]="bairroRotaErro()"
+              [attr.aria-invalid]="!!bairroRotaErro()"
+              [attr.aria-describedby]="bairroRotaErro() ? 'bairro-rota-erro' : null"
+            />
+            @if (bairroRotaErro(); as erro) {
+              <span id="bairro-rota-erro" class="field__error" role="alert">{{ erro }}</span>
+            }
+          </div>
+        }
+      }
+
+      @if (erroGeral(); as erro) {
+        <p class="alert" role="alert">{{ erro }}</p>
+      }
+
+      <button type="submit" class="btn btn--primary" [disabled]="enviando()">
+        {{ enviando() ? 'Registrando...' : 'Registrar passeio' }}
+      </button>
+    </form>
+  </div>
+</section>

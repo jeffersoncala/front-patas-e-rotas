@@ -1,0 +1,12 @@
+/* Layout, marca e controles vêm do AuthLayout e dos estilos globais. */
+:host {
+  display: block;
+}
+
+.tabs {
+  align-self: flex-start;
+}
+
+.check {
+  font-size: 0.9rem;
+}

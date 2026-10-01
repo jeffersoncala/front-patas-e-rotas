@@ -1,0 +1,83 @@
+<section class="page">
+  <a class="voltar" routerLink="/rotas"><span aria-hidden="true">←</span> Voltar para rotas</a>
+
+  @if (rota(); as rota) {
+    <header class="page__header">
+      <div>
+        <h1 class="page__title">{{ rota.nome }}</h1>
+        <p class="page__subtitle">{{ rota.bairro }}</p>
+      </div>
+      <div class="acoes">
+        <button
+          type="button"
+          class="chip"
+          [class.chip--ativo]="rota.favorita"
+          [attr.aria-pressed]="rota.favorita"
+          (click)="alternarFavorita()"
+        >
+          {{ rota.favorita ? 'Favorita ♥' : 'Favoritar ♡' }}
+          <span class="sr-only">a rota {{ rota.nome }}</span>
+        </button>
+        <a class="btn btn--primary" routerLink="/passeios/novo" [queryParams]="{ rota: rota.id }">
+          Passear nessa rota
+        </a>
+      </div>
+    </header>
+
+    @if (rota.descricao) {
+      <p class="descricao">{{ rota.descricao }}</p>
+    }
+
+    <section class="stats" aria-label="Números da rota">
+      <div class="stat">
+        <span class="stat__label">Distância</span>
+        <strong class="stat__value">{{ formatarKm(rota.distanciaKm) }} <small>km</small></strong>
+      </div>
+      <div class="stat">
+        <span class="stat__label">Duração média</span>
+        <strong class="stat__value">{{ formatarDuracao(rota.duracaoMin) }}</strong>
+      </div>
+      <div class="stat">
+        <span class="stat__label">Passeios</span>
+        <strong class="stat__value" data-testid="total-passeios">{{ passeios().length }}</strong>
+        <span class="stat__hint">feitos nessa rota</span>
+      </div>
+    </section>
+
+    <app-mapa
+      class="detalhe__mapa"
+      [rotulo]="'Mapa da rota ' + rota.nome"
+      [trajetos]="trajetos()"
+      [marcadores]="marcadores()"
+    />
+
+    <section class="card" aria-labelledby="passeios-titulo">
+      <header class="card__header">
+        <h2 id="passeios-titulo" class="card__title">Passeios recentes</h2>
+      </header>
+      @if (recentes().length) {
+        <ul class="list">
+          @for (passeio of recentes(); track passeio.id) {
+            <li class="item">
+              <div class="item__info">
+                <p class="item__title">
+                  {{ passeio.pet }} <span class="item__meta">· {{ tempoRelativo(passeio.data) }}</span>
+                </p>
+                @if (passeio.texto) {
+                  <p class="texto">{{ passeio.texto }}</p>
+                }
+              </div>
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="vazio">Ninguém passeou por aqui ainda. Seja o primeiro!</p>
+      }
+    </section>
+  } @else if (carregadas()) {
+    <div class="card vazio" role="status">
+      <h1 class="page__title">Rota não encontrada</h1>
+      <p class="page__subtitle">Ela pode ter sido removida ou o link está incorreto.</p>
+    </div>
+  }
+</section>

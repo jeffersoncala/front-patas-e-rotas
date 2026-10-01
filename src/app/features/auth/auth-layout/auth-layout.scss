@@ -1,0 +1,184 @@
+/* Sem encapsulamento: todas as regras ficam sob o prefixo `.auth`. */
+.auth {
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  min-height: 100dvh;
+
+  /* ---------- Painel de apresentação ---------- */
+  &__hero {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    padding: clamp(2rem, 5vw, 4rem);
+    overflow: hidden;
+    color: #fff;
+    background: linear-gradient(150deg, var(--brand-500), var(--brand-700) 55%, #8f3411);
+  }
+
+  &__paws {
+    position: absolute;
+    inset: 0;
+    opacity: 0.16;
+  }
+
+  &__paw {
+    position: absolute;
+    width: 6rem;
+
+    &:nth-child(1) { top: 6%; left: 12%; rotate: -18deg; }
+    &:nth-child(2) { top: 22%; left: 38%; rotate: 12deg; width: 4rem; }
+    &:nth-child(3) { top: 14%; right: 8%; rotate: 26deg; width: 7rem; }
+    &:nth-child(4) { top: 46%; left: 6%; rotate: 8deg; width: 3.5rem; }
+    &:nth-child(5) { bottom: 26%; right: 18%; rotate: -12deg; width: 5rem; }
+    &:nth-child(6) { bottom: 4%; left: 30%; rotate: 32deg; width: 4.5rem; }
+  }
+
+  &__hero-content {
+    position: relative;
+    max-width: 34rem;
+  }
+
+  &__hero-title {
+    max-width: 22ch;
+    font-size: clamp(1.9rem, 3.2vw, 2.9rem);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  &__hero-text {
+    margin-top: 1rem;
+    font-size: 1.05rem;
+    line-height: 1.6;
+    color: rgb(255 255 255 / 88%);
+  }
+
+  &__stats {
+    display: flex;
+    gap: 2rem;
+    padding: 0;
+    margin: 2.5rem 0 0;
+    list-style: none;
+
+    li {
+      display: flex;
+      flex-direction: column;
+    }
+
+    strong {
+      font-size: 1.5rem;
+      font-weight: 800;
+    }
+
+    span {
+      font-size: 0.8rem;
+      color: rgb(255 255 255 / 80%);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+  }
+
+  /* ---------- Painel do formulário ---------- */
+  &__panel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(1.5rem, 4vw, 3.5rem);
+    background: var(--surface);
+  }
+
+  &__inner {
+    width: 100%;
+    max-width: 25rem;
+  }
+
+  &__brand {
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+  }
+
+  &__mark {
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    color: #fff;
+    background: var(--brand-500);
+    border-radius: var(--radius-md);
+
+    svg {
+      width: 1.5rem;
+      rotate: -10deg;
+    }
+  }
+
+  &__name {
+    font-size: 1.1rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+
+    span {
+      color: var(--brand-500);
+    }
+  }
+
+  &__title {
+    margin-top: 2rem;
+    font-size: 1.9rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+
+  &__subtitle {
+    margin-top: 0.5rem;
+    line-height: 1.5;
+    color: var(--ink-500);
+  }
+
+  /* ---------- Conteúdo projetado ---------- */
+  &__inner > .alert {
+    margin-top: 1.25rem;
+  }
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.15rem;
+    margin-top: 1.75rem;
+  }
+
+  &__row {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.875rem;
+  }
+
+  &__rodape {
+    margin-top: 2rem;
+    font-size: 0.9rem;
+    color: var(--ink-500);
+    text-align: center;
+
+    a {
+      font-weight: 700;
+    }
+  }
+
+  /* ---------- Responsivo ---------- */
+  @media (max-width: 60rem) {
+    grid-template-columns: 1fr;
+
+    &__hero {
+      display: none;
+    }
+
+    &__panel {
+      align-items: flex-start;
+      padding-top: 3rem;
+    }
+  }
+}

@@ -1,0 +1,89 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <h1 class="page__title">Rotas</h1>
+      <p class="page__subtitle">Caminhos que a vizinhança já testou e aprovou.</p>
+    </div>
+    <a class="btn btn--primary" routerLink="/passeios/novo">Nova rota</a>
+  </header>
+
+  <div class="tabs" role="group" aria-label="Filtrar rotas">
+    @for (f of filtros; track f.id) {
+      <button
+        type="button"
+        class="tabs__item"
+        [attr.aria-pressed]="filtro() === f.id"
+        (click)="filtrar(f.id)"
+      >
+        {{ f.label }}
+      </button>
+    }
+  </div>
+
+  <div class="rotas">
+    <app-mapa
+      class="rotas__mapa"
+      rotulo="Mapa das rotas"
+      [trajetos]="trajetos()"
+      [marcadores]="marcadores()"
+      (marcadorClicado)="selecionar(+$event)"
+    />
+
+    <section class="card" aria-labelledby="lista-titulo">
+      <header class="card__header">
+        <h2 id="lista-titulo" class="card__title">
+          {{ filtro() === 'favoritas' ? 'Rotas favoritas' : 'Todas as rotas' }}
+        </h2>
+      </header>
+
+      @if (rotas().length) {
+        <ul class="list">
+          @for (rota of rotas(); track rota.id) {
+            <li
+              class="item rota"
+              [class.rota--selecionada]="rota.id === selecionadaId()"
+              (click)="selecionar(rota.id)"
+              (mouseenter)="hoverId.set(rota.id)"
+              (mouseleave)="hoverId.set(null)"
+              (focusin)="hoverId.set(rota.id)"
+              (focusout)="hoverId.set(null)"
+            >
+              <span class="icone-rota" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M5 19c3-6 11-2 14-8M5 19a2 2 0 1 0 0-.01M19 11a2 2 0 1 0 0-.01" />
+                </svg>
+              </span>
+              <div class="item__info">
+                <a class="item__title" [routerLink]="['/rotas', rota.id]">{{ rota.nome }}</a>
+                <p class="item__meta">
+                  {{ rota.bairro }} · {{ formatarKm(rota.distanciaKm) }} km ·
+                  {{ formatarDuracao(rota.duracaoMin) }}
+                </p>
+              </div>
+              <button
+                type="button"
+                class="favoritar"
+                [class.favoritar--ativo]="rota.favorita"
+                [attr.aria-pressed]="rota.favorita"
+                (click)="$event.stopPropagation(); alternarFavorita(rota.id)"
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z" />
+                </svg>
+                <span class="sr-only">Favoritar {{ rota.nome }}</span>
+              </button>
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="vazio">
+          @if (filtro() === 'favoritas') {
+            Nenhuma rota favorita ainda. Toque no coração de uma rota para guardá-la aqui.
+          } @else {
+            Nenhuma rota cadastrada ainda. Que tal criar a primeira?
+          }
+        </p>
+      }
+    </section>
+  </div>
+</section>

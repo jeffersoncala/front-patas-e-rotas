@@ -1,0 +1,77 @@
+.detalhe {
+  display: grid;
+  gap: 1.5rem;
+  align-items: start;
+
+  app-mapa {
+    height: 22rem;
+  }
+}
+
+.detalhe__quando::first-letter {
+  text-transform: uppercase;
+}
+
+.detalhe__info {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.detalhe__dados {
+  display: grid;
+  gap: 0.9rem;
+  margin: 0;
+
+  dt {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--ink-500);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  dd {
+    margin: 0.15rem 0 0;
+    font-weight: 700;
+  }
+}
+
+.detalhe__confirmados {
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.detalhe__descricao {
+  line-height: 1.55;
+  color: var(--ink-700);
+}
+
+.detalhe__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+
+  .btn {
+    flex: 1 1 12rem;
+    font-size: 1.05rem;
+  }
+}
+
+.detalhe__info .tag {
+  align-self: flex-start;
+}
+
+.detalhe__voltar {
+  margin-top: 1.25rem;
+}
+
+@media (min-width: 60rem) {
+  .detalhe {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+
+    app-mapa {
+      height: 28rem;
+    }
+  }
+}

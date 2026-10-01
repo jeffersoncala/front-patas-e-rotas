@@ -1,0 +1,82 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <h1 class="page__title">Encontros</h1>
+      <p class="page__subtitle">Marque presença nos rolês da vizinhança ou chame a turma para um novo.</p>
+    </div>
+    <a class="btn btn--primary" routerLink="/encontros/novo">Criar encontro</a>
+  </header>
+
+  <div class="tabs" role="group" aria-label="Filtrar encontros">
+    @for (f of filtros; track f.id) {
+      <button
+        type="button"
+        class="tabs__item"
+        [attr.aria-pressed]="filtro() === f.id"
+        (click)="escolherFiltro(f.id)"
+      >
+        {{ f.label }}
+      </button>
+    }
+  </div>
+
+  <div class="encontros">
+    <section class="card encontros__lista" aria-labelledby="lista-titulo">
+      <h2 id="lista-titulo" class="sr-only">Lista de encontros</h2>
+
+      @if (encontros().length) {
+        <ul class="list">
+          @for (encontro of encontros(); track encontro.id) {
+            <li
+              class="item encontros__item"
+              [id]="'encontro-' + encontro.id"
+              [class.encontros__item--ativo]="selecionado() === encontro.id"
+              (mouseenter)="selecionar(encontro.id)"
+              (focusin)="selecionar(encontro.id)"
+            >
+              <div class="calendario" aria-hidden="true">
+                <span>{{ encontro.semana }}</span>
+                <strong>{{ encontro.dia }}</strong>
+              </div>
+              <div class="item__info">
+                <a class="item__title" [routerLink]="['/encontros', encontro.id]">
+                  {{ encontro.titulo }}
+                </a>
+                <p class="item__meta">
+                  {{ encontro.local }} · {{ encontro.dia }} {{ encontro.mes }}, {{ encontro.hora }} ·
+                  {{ encontro.confirmados }} pets
+                </p>
+              </div>
+              <button
+                type="button"
+                class="chip"
+                [class.chip--ativo]="encontro.vou"
+                [attr.aria-pressed]="encontro.vou"
+                (click)="alternarPresenca(encontro.id)"
+              >
+                {{ encontro.vou ? 'Vou ✓' : 'Vou!' }}
+                <span class="sr-only">ao encontro {{ encontro.titulo }}</span>
+              </button>
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="vazio">
+          @if (filtro() === 'vou') {
+            Você ainda não confirmou presença em nenhum encontro.
+          } @else {
+            Nenhum encontro marcado por enquanto. Que tal criar o primeiro?
+          }
+        </p>
+      }
+    </section>
+
+    <div class="encontros__mapa">
+      <app-mapa
+        rotulo="Mapa dos encontros"
+        [marcadores]="marcadores()"
+        (marcadorClicado)="aoClicarMarcador($event)"
+      />
+    </div>
+  </div>
+</section>

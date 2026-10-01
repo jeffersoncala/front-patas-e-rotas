@@ -1,0 +1,180 @@
+@if (perfil(); as perfil) {
+  <div class="page">
+    <section class="card perfil">
+      <span class="perfil__avatar" aria-hidden="true">{{ perfil.pet[0] }}</span>
+
+      @if (!editando()) {
+        <div class="perfil__info">
+          <h1 class="page__title">{{ perfil.pet }}</h1>
+          <p class="page__subtitle">
+            {{ especie() }}{{ perfil.raca ? ' · ' + perfil.raca : '' }} ·
+            {{ perfil.idadeAnos }} {{ perfil.idadeAnos === 1 ? 'ano' : 'anos' }} · porte
+            {{ porte().toLowerCase() }}
+          </p>
+          @if (perfil.bio) {
+            <p class="perfil__bio">{{ perfil.bio }}</p>
+          }
+          <p class="perfil__tutor">Tutor(a): {{ perfil.tutor }} · {{ perfil.email }}</p>
+        </div>
+        <div class="perfil__acoes">
+          <button type="button" class="btn btn--secondary btn--sm" (click)="editar()">
+            Editar perfil
+          </button>
+          <button type="button" class="btn btn--danger btn--sm" (click)="sair()">Sair</button>
+        </div>
+      } @else {
+        <form class="form" [formGroup]="form" (ngSubmit)="salvar()" novalidate>
+          <h1 class="card__title">Editar perfil</h1>
+
+          <div class="form__grid">
+            <div class="field">
+              <label class="field__label" for="pet">Nome do pet</label>
+              <input
+                id="pet"
+                class="field__input"
+                formControlName="pet"
+                [class.field__input--invalid]="petErro()"
+                [attr.aria-invalid]="petErro() ? 'true' : null"
+                [attr.aria-describedby]="petErro() ? 'pet-erro' : null"
+              />
+              @if (petErro(); as erro) {
+                <p class="field__error" id="pet-erro" role="alert">{{ erro }}</p>
+              }
+            </div>
+
+            <div class="field">
+              <label class="field__label" for="raca">Raça</label>
+              <input id="raca" class="field__input" formControlName="raca" placeholder="Vira-lata" />
+            </div>
+
+            <div class="field">
+              <label class="field__label" for="idade">Idade (anos)</label>
+              <input
+                id="idade"
+                type="number"
+                min="0"
+                max="40"
+                class="field__input"
+                formControlName="idadeAnos"
+                [class.field__input--invalid]="idadeErro()"
+                [attr.aria-invalid]="idadeErro() ? 'true' : null"
+                [attr.aria-describedby]="idadeErro() ? 'idade-erro' : null"
+              />
+              @if (idadeErro(); as erro) {
+                <p class="field__error" id="idade-erro" role="alert">{{ erro }}</p>
+              }
+            </div>
+
+            <div class="field">
+              <label class="field__label" for="porte">Porte</label>
+              <select id="porte" class="field__input" formControlName="porte">
+                @for (porte of portes; track porte.id) {
+                  <option [value]="porte.id">{{ porte.label }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="field">
+              <label class="field__label" for="meta">Meta semanal (km)</label>
+              <input
+                id="meta"
+                type="number"
+                min="1"
+                max="200"
+                class="field__input"
+                formControlName="metaSemanalKm"
+                [class.field__input--invalid]="metaErro()"
+                [attr.aria-invalid]="metaErro() ? 'true' : null"
+                [attr.aria-describedby]="metaErro() ? 'meta-erro' : null"
+              />
+              @if (metaErro(); as erro) {
+                <p class="field__error" id="meta-erro" role="alert">{{ erro }}</p>
+              }
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="bio">Sobre o pet</label>
+            <textarea
+              id="bio"
+              class="field__input"
+              formControlName="bio"
+              maxlength="200"
+              aria-describedby="bio-dica"
+            ></textarea>
+            <p class="field__hint" id="bio-dica">Até 200 caracteres.</p>
+          </div>
+
+          <div class="perfil__acoes perfil__acoes--form">
+            <button type="button" class="btn btn--ghost btn--sm" (click)="cancelar()">
+              Cancelar
+            </button>
+            <button type="submit" class="btn btn--primary btn--sm" [disabled]="salvando()">
+              {{ salvando() ? 'Salvando…' : 'Salvar' }}
+            </button>
+          </div>
+        </form>
+      }
+    </section>
+
+    <section class="stats" aria-labelledby="stats-titulo">
+      <h2 id="stats-titulo" class="sr-only">Números do {{ perfil.pet }}</h2>
+      <div class="stat">
+        <span class="stat__label">Distância total</span>
+        <strong class="stat__value">{{ formatarKm(kmTotal()) }} <small>km</small></strong>
+      </div>
+      <div class="stat">
+        <span class="stat__label">Passeios</span>
+        <strong class="stat__value">{{ totalPasseios() }}</strong>
+      </div>
+      <div class="stat">
+        <span class="stat__label">Encontros confirmados</span>
+        <strong class="stat__value">{{ encontrosConfirmados() }}</strong>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="historico-titulo">
+      <header class="card__header">
+        <h2 id="historico-titulo" class="card__title">Meus passeios</h2>
+        <a routerLink="/passeios/novo" class="card__link">Registrar novo</a>
+      </header>
+
+      @if (meusPasseios().length) {
+        <div class="historico">
+          <app-mapa rotulo="Mapa dos meus passeios" [trajetos]="trajetos()" />
+
+          <ul class="list">
+            @for (passeio of meusPasseios(); track passeio.id) {
+              <li>
+                <button
+                  type="button"
+                  class="item passeio"
+                  [attr.aria-pressed]="passeio.id === selecionado()"
+                  (click)="selecionar(passeio.id)"
+                >
+                  <span class="icone-rota" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M5 19c3-6 11-2 14-8M5 19a2 2 0 1 0 0-.01M19 11a2 2 0 1 0 0-.01" />
+                    </svg>
+                  </span>
+                  <span class="item__info">
+                    <span class="item__title">{{ passeio.rotaNome || 'Passeio livre' }}</span>
+                    <span class="item__meta">
+                      {{ tempoRelativo(passeio.data) }} · {{ formatarKm(passeio.distanciaKm) }} km ·
+                      {{ formatarDuracao(passeio.duracaoMin) }}
+                    </span>
+                  </span>
+                  <span class="sr-only">, destacar no mapa</span>
+                </button>
+              </li>
+            }
+          </ul>
+        </div>
+      } @else {
+        <p class="vazio">
+          Nenhum passeio ainda. <a routerLink="/passeios/novo">Que tal o primeiro?</a>
+        </p>
+      }
+    </section>
+  </div>
+}

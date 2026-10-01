@@ -1,0 +1,155 @@
+:host {
+  display: block;
+  min-height: 100dvh;
+}
+
+.pular {
+  position: absolute;
+  top: -3rem;
+  left: 1rem;
+  z-index: 20;
+  padding: 0.6rem 1rem;
+  font-weight: 700;
+  color: #fff;
+  background: var(--ink-900);
+  border-radius: var(--radius-sm);
+
+  &:focus {
+    top: 0.75rem;
+  }
+}
+
+main:focus {
+  outline: none;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000; /* acima dos controles do Leaflet */
+  background: rgb(255 255 255 / 92%);
+  border-bottom: 1px solid var(--ink-100);
+  backdrop-filter: blur(8px);
+}
+
+.topbar__inner {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  max-width: 72rem;
+  padding: 0.75rem clamp(1rem, 4vw, 2rem);
+  margin: 0 auto;
+}
+
+.brand {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  color: var(--ink-900);
+
+  &:hover {
+    text-decoration: none;
+  }
+}
+
+.brand__mark {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  color: #fff;
+  background: var(--brand-500);
+  border-radius: var(--radius-sm);
+
+  svg {
+    width: 1.35rem;
+    rotate: -10deg;
+  }
+}
+
+.brand__name {
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+
+  span {
+    color: var(--brand-500);
+  }
+}
+
+.nav {
+  display: flex;
+  gap: 0.25rem;
+  margin-left: auto;
+}
+
+.nav__link {
+  padding: 0.5rem 0.9rem;
+  font-weight: 700;
+  color: var(--ink-500);
+  border-radius: var(--radius-pill);
+
+  &:hover {
+    color: var(--ink-900);
+    text-decoration: none;
+    background: var(--surface-muted);
+  }
+
+  &--ativo {
+    color: var(--brand-700);
+    background: var(--brand-100);
+  }
+}
+
+.avatar {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  font-weight: 800;
+  color: #fff;
+  background: var(--accent-500);
+  border-radius: 50%;
+
+  &:hover {
+    text-decoration: none;
+    background: var(--accent-600);
+  }
+}
+
+/* No celular a navegação vira uma barra fixa no rodapé. */
+@media (max-width: 48rem) {
+  :host {
+    padding-bottom: 4.5rem;
+  }
+
+  .avatar {
+    margin-left: auto;
+  }
+
+  .nav {
+    position: fixed;
+    inset: auto 0 0;
+    justify-content: space-around;
+    padding: 0.5rem 0.5rem calc(0.5rem + env(safe-area-inset-bottom));
+    margin: 0;
+    background: var(--surface);
+    border-top: 1px solid var(--ink-100);
+  }
+
+  .nav__link {
+    padding: 0.5rem 0.6rem;
+    font-size: 0.85rem;
+
+    &--cta {
+      color: #fff;
+      background: var(--brand-500);
+
+      &.nav__link--ativo {
+        color: #fff;
+        background: var(--brand-700);
+      }
+    }
+  }
+}

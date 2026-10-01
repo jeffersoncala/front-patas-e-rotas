@@ -1,0 +1,38 @@
+<!-- Painel de apresentação: some em telas pequenas -->
+<section class="auth__hero" aria-hidden="true">
+  <div class="auth__paws">
+    @for (pata of patas; track pata) {
+      <svg appPata class="auth__paw"></svg>
+    }
+  </div>
+
+  <div class="auth__hero-content">
+    <h2 class="auth__hero-title">{{ heroTitulo() }}</h2>
+    <p class="auth__hero-text">{{ heroTexto() }}</p>
+
+    <ul class="auth__stats">
+      @for (stat of stats; track stat.label) {
+        <li>
+          <strong>{{ stat.valor }}</strong><span>{{ stat.label }}</span>
+        </li>
+      }
+    </ul>
+  </div>
+</section>
+
+<!-- Formulário -->
+<main class="auth__panel">
+  <div class="auth__inner">
+    <header class="auth__brand">
+      <span class="auth__mark" aria-hidden="true"><svg appPata></svg></span>
+      <p class="auth__name">Patas <span>&</span> Rotas</p>
+    </header>
+
+    <h1 class="auth__title">{{ titulo() }}</h1>
+    @if (subtitulo(); as texto) {
+      <p class="auth__subtitle">{{ texto }}</p>
+    }
+
+    <ng-content />
+  </div>
+</main>

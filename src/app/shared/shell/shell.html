@@ -1,0 +1,33 @@
+<a class="pular" href="#conteudo">Pular para o conteúdo</a>
+
+<header class="topbar">
+  <div class="topbar__inner">
+    <a class="brand" routerLink="/" aria-label="Patas & Rotas, início">
+      <span class="brand__mark"><svg appPata></svg></span>
+      <span class="brand__name">Patas <span>&</span> Rotas</span>
+    </a>
+
+    <nav class="nav" aria-label="Principal">
+      @for (link of links; track link.rota) {
+        <a
+          class="nav__link"
+          [class.nav__link--cta]="link.rota === '/passeios/novo'"
+          [routerLink]="link.rota"
+          routerLinkActive="nav__link--ativo"
+          [routerLinkActiveOptions]="{ exact: link.exato }"
+          ariaCurrentWhenActive="page"
+        >
+          {{ link.label }}
+        </a>
+      }
+    </nav>
+
+    <a class="avatar" routerLink="/perfil" [attr.aria-label]="'Perfil de ' + (perfil()?.pet ?? 'seu pet')">
+      {{ perfil()?.pet?.[0] ?? '?' }}
+    </a>
+  </div>
+</header>
+
+<main id="conteudo" tabindex="-1">
+  <router-outlet />
+</main>

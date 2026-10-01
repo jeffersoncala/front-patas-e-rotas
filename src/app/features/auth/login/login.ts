@@ -2,6 +2,9 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
+import { mensagemDeErro } from '../../../core/api';
+import { AuthService } from '../../../core/auth.service';
+import { AuthLayout } from '../auth-layout/auth-layout';
 
 /** Provedores de login social oferecidos na tela. */
 const SOCIAL_PROVIDERS = [
@@ -13,13 +16,14 @@ type SocialProvider = (typeof SOCIAL_PROVIDERS)[number]['id'];
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, AuthLayout],
   templateUrl: './login.html',
   styleUrl: './login.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Login {
   private readonly router = inject(Router);
+  private readonly auth = inject(AuthService);
 
   protected readonly providers = SOCIAL_PROVIDERS;
 
@@ -75,11 +79,13 @@ export class Login {
 
     this.enviando.set(true);
     try {
-      // TODO: trocar pela chamada real ao AuthService quando a API estiver pronta.
-      await new Promise((resolve) => setTimeout(resolve, 600));
+      const { email, senha, lembrarMe } = this.form.getRawValue();
+      await this.auth.entrar(email, senha, lembrarMe);
       await this.router.navigateByUrl('/');
-    } catch {
-      this.erroGeral.set('Não foi possível entrar agora. Tente novamente em instantes.');
+    } catch (erro) {
+      this.erroGeral.set(
+        mensagemDeErro(erro, 'Não foi possível entrar agora. Tente novamente em instantes.'),
+      );
     } finally {
       this.enviando.set(false);
     }

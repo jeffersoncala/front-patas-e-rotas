@@ -1,0 +1,176 @@
+<app-auth-layout
+  heroTitulo="Seu pet merece uma turma pra passear."
+  heroTexto="Crie o perfil do seu bicho, encontre vizinhos de quatro patas e transforme cada volta no quarteirão em uma aventura registrada."
+  titulo="Crie o perfil do seu pet"
+  subtitulo="Leva menos de um minuto e o primeiro rolê já pode ser marcado hoje."
+>
+  @if (erroGeral(); as erro) {
+    <p class="alert" role="alert">{{ erro }}</p>
+  }
+
+  <form class="auth__form" [formGroup]="form" (ngSubmit)="cadastrar()" novalidate>
+    <div class="field">
+      <label class="field__label" for="tutor">Seu nome</label>
+      <input
+        id="tutor"
+        class="field__input"
+        formControlName="tutor"
+        placeholder="Como você quer ser chamado"
+        autocomplete="name"
+        [class.field__input--invalid]="tutorErro()"
+        [attr.aria-invalid]="tutorErro() ? 'true' : null"
+        [attr.aria-describedby]="tutorErro() ? 'tutor-erro' : null"
+      />
+      @if (tutorErro(); as erro) {
+        <p class="field__error" id="tutor-erro" role="alert">{{ erro }}</p>
+      }
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="email">E-mail</label>
+      <input
+        id="email"
+        type="email"
+        class="field__input"
+        formControlName="email"
+        placeholder="tutor@exemplo.com"
+        autocomplete="email"
+        inputmode="email"
+        [class.field__input--invalid]="emailErro()"
+        [attr.aria-invalid]="emailErro() ? 'true' : null"
+        [attr.aria-describedby]="emailErro() ? 'email-erro' : null"
+      />
+      @if (emailErro(); as erro) {
+        <p class="field__error" id="email-erro" role="alert">{{ erro }}</p>
+      }
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="senha">Senha</label>
+      <div class="field__wrap">
+        <input
+          id="senha"
+          class="field__input"
+          formControlName="senha"
+          [type]="senhaVisivel() ? 'text' : 'password'"
+          placeholder="Crie uma senha"
+          autocomplete="new-password"
+          [class.field__input--invalid]="senhaErro()"
+          [attr.aria-invalid]="senhaErro() ? 'true' : null"
+          [attr.aria-describedby]="senhaErro() ? 'senha-erro' : 'senha-dica'"
+        />
+        <button
+          type="button"
+          class="field__toggle"
+          (click)="alternarSenha()"
+          [attr.aria-pressed]="senhaVisivel()"
+        >
+          {{ senhaVisivel() ? 'Ocultar' : 'Mostrar' }}
+          <span class="sr-only">senha</span>
+        </button>
+      </div>
+      @if (senhaErro(); as erro) {
+        <p class="field__error" id="senha-erro" role="alert">{{ erro }}</p>
+      } @else {
+        <p class="field__hint" id="senha-dica">Use ao menos 6 caracteres.</p>
+      }
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="pet">Nome do pet</label>
+      <input
+        id="pet"
+        class="field__input"
+        formControlName="pet"
+        placeholder="Ex.: Bolota"
+        autocomplete="off"
+        [class.field__input--invalid]="petErro()"
+        [attr.aria-invalid]="petErro() ? 'true' : null"
+        [attr.aria-describedby]="petErro() ? 'pet-erro' : null"
+      />
+      @if (petErro(); as erro) {
+        <p class="field__error" id="pet-erro" role="alert">{{ erro }}</p>
+      }
+    </div>
+
+    <div class="field">
+      <span class="field__label" id="especie-label">Espécie</span>
+      <div
+        class="tabs"
+        role="radiogroup"
+        aria-labelledby="especie-label"
+        aria-required="true"
+        [attr.aria-invalid]="especieErro() ? 'true' : null"
+        [attr.aria-describedby]="especieErro() ? 'especie-erro' : null"
+        (keydown)="moverEscolha($event)"
+      >
+        @for (opcao of especies; track opcao.id; let primeira = $first) {
+          <button
+            type="button"
+            class="tabs__item"
+            role="radio"
+            [attr.aria-checked]="especie() === opcao.id"
+            [attr.tabindex]="especie() === opcao.id || (!especie() && primeira) ? 0 : -1"
+            (click)="escolherEspecie(opcao.id)"
+          >
+            {{ opcao.label }}
+          </button>
+        }
+      </div>
+      @if (especieErro(); as erro) {
+        <p class="field__error" id="especie-erro" role="alert">{{ erro }}</p>
+      }
+    </div>
+
+    <div class="field">
+      <span class="field__label" id="porte-label">Porte</span>
+      <div
+        class="tabs"
+        role="radiogroup"
+        aria-labelledby="porte-label"
+        aria-required="true"
+        [attr.aria-invalid]="porteErro() ? 'true' : null"
+        [attr.aria-describedby]="porteErro() ? 'porte-erro' : null"
+        (keydown)="moverEscolha($event)"
+      >
+        @for (opcao of portes; track opcao.id; let primeira = $first) {
+          <button
+            type="button"
+            class="tabs__item"
+            role="radio"
+            [attr.aria-checked]="porte() === opcao.id"
+            [attr.tabindex]="porte() === opcao.id || (!porte() && primeira) ? 0 : -1"
+            (click)="escolherPorte(opcao.id)"
+          >
+            {{ opcao.label }}
+          </button>
+        }
+      </div>
+      @if (porteErro(); as erro) {
+        <p class="field__error" id="porte-erro" role="alert">{{ erro }}</p>
+      }
+    </div>
+
+    <div class="field">
+      <label class="check">
+        <input
+          id="termos"
+          type="checkbox"
+          formControlName="termos"
+          [attr.aria-invalid]="termosErro() ? 'true' : null"
+          [attr.aria-describedby]="termosErro() ? 'termos-erro' : null"
+        />
+        <span>Li e aceito os termos de uso e a política de privacidade</span>
+      </label>
+      @if (termosErro(); as erro) {
+        <p class="field__error" id="termos-erro" role="alert">{{ erro }}</p>
+      }
+    </div>
+
+    <button type="submit" class="btn btn--primary" [disabled]="enviando()">
+      {{ enviando() ? 'Criando conta…' : 'Criar conta' }}
+    </button>
+  </form>
+
+  <p class="auth__rodape"><a routerLink="/login">Já tenho conta</a></p>
+</app-auth-layout>

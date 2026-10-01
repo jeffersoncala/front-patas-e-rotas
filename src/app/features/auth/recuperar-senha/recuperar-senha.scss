@@ -1,0 +1,9 @@
+/* Layout, marca e controles vêm do AuthLayout e dos estilos globais. */
+:host {
+  display: block;
+}
+
+[role='status'] .alert {
+  margin-top: 1.25rem;
+  line-height: 1.5;
+}

@@ -1,0 +1,118 @@
+<section class="page">
+  <a class="voltar" routerLink="/encontros"><span aria-hidden="true">←</span> Todos os encontros</a>
+
+  <header>
+    <h1 class="page__title">Novo encontro</h1>
+    <p class="page__subtitle">Escolha o lugar e a hora, e a turma da vizinhança fica sabendo.</p>
+  </header>
+
+  <form class="novo" [formGroup]="form" (ngSubmit)="criar()" novalidate>
+    <div class="card novo__campos">
+      <div class="field">
+        <label class="field__label" for="titulo">Título</label>
+        <input
+          id="titulo"
+          class="field__input"
+          formControlName="titulo"
+          placeholder="Ex.: Rolê dos vira-latas"
+          [class.field__input--invalid]="tituloErro()"
+          [attr.aria-invalid]="tituloErro() ? 'true' : null"
+          [attr.aria-describedby]="tituloErro() ? 'titulo-erro' : null"
+        />
+        @if (tituloErro(); as erro) {
+          <p class="field__error" id="titulo-erro" role="alert">{{ erro }}</p>
+        }
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="descricao">Descrição <span class="novo__opcional">(opcional)</span></label>
+        <textarea
+          id="descricao"
+          class="field__input"
+          formControlName="descricao"
+          placeholder="Conte o que vai rolar, para quais pets é indicado…"
+        ></textarea>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="local">Nome do local</label>
+        <input
+          id="local"
+          class="field__input"
+          formControlName="local"
+          placeholder="Ex.: Parque do Flamengo"
+          [class.field__input--invalid]="localErro()"
+          [attr.aria-invalid]="localErro() ? 'true' : null"
+          [attr.aria-describedby]="localErro() ? 'local-erro' : null"
+        />
+        @if (localErro(); as erro) {
+          <p class="field__error" id="local-erro" role="alert">{{ erro }}</p>
+        }
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="data">Data e hora</label>
+        <input
+          id="data"
+          type="datetime-local"
+          class="field__input"
+          formControlName="data"
+          [min]="dataMinima"
+          [class.field__input--invalid]="dataErro()"
+          [attr.aria-invalid]="dataErro() ? 'true' : null"
+          [attr.aria-describedby]="dataErro() ? 'data-erro' : null"
+        />
+        @if (dataErro(); as erro) {
+          <p class="field__error" id="data-erro" role="alert">{{ erro }}</p>
+        }
+      </div>
+    </div>
+
+    <fieldset class="card novo__mapa" [attr.aria-describedby]="posicaoErro() ? 'posicao-erro' : 'posicao-dica'">
+      <legend class="card__title">Ponto de encontro</legend>
+      <p class="field__hint" id="posicao-dica">
+        Toque no mapa para marcar onde a turma vai se reunir.
+        @if (posicao()) {
+          <strong>Ponto marcado.</strong>
+        }
+      </p>
+
+      <app-mapa
+        rotulo="Mapa para escolher o ponto de encontro"
+        [centro]="centro()"
+        [zoom]="15"
+        [enquadrar]="false"
+        [marcadores]="marcadores()"
+        [class.novo__mapa--invalido]="posicaoErro()"
+        (cliqueMapa)="escolherPosicao($event)"
+      />
+
+      @if (posicaoErro(); as erro) {
+        <p class="field__error" id="posicao-erro" role="alert">{{ erro }}</p>
+      }
+      @if (erroLocalizacao(); as erro) {
+        <p class="alert" role="alert">{{ erro }}</p>
+      }
+
+      <button
+        type="button"
+        class="btn btn--secondary btn--sm"
+        [disabled]="localizando()"
+        (click)="usarMinhaLocalizacao()"
+      >
+        {{ localizando() ? 'Localizando…' : 'Usar minha localização' }}
+      </button>
+    </fieldset>
+
+    @if (erroGeral(); as erro) {
+      <p class="alert" role="alert">{{ erro }}</p>
+    }
+
+    <div class="novo__acoes">
+      <a class="btn btn--ghost" routerLink="/encontros">Cancelar</a>
+      <button type="submit" class="btn btn--primary" [disabled]="enviando()">
+        {{ enviando() ? 'Criando…' : 'Criar encontro' }}
+      </button>
+    </div>
+  </form>
+</section>

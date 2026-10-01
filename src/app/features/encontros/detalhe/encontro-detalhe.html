@@ -1,0 +1,72 @@
+<section class="page">
+  <a class="voltar" routerLink="/encontros"><span aria-hidden="true">←</span> Todos os encontros</a>
+
+  @if (encontro(); as encontro) {
+    <header class="page__header">
+      <div>
+        <h1 class="page__title">{{ encontro.titulo }}</h1>
+        <p class="page__subtitle detalhe__quando">{{ quando() }}</p>
+      </div>
+    </header>
+
+    <div class="detalhe">
+      <div class="card detalhe__info">
+        <dl class="detalhe__dados">
+          <div>
+            <dt>Local</dt>
+            <dd>{{ encontro.local }}</dd>
+          </div>
+          <div>
+            <dt>Organização</dt>
+            <dd>{{ encontro.organizador }}</dd>
+          </div>
+          <div>
+            <dt>Confirmados</dt>
+            <dd class="detalhe__confirmados">
+              {{ encontro.confirmados }} {{ encontro.confirmados === 1 ? 'pet' : 'pets' }}
+            </dd>
+          </div>
+        </dl>
+
+        @if (encontro.descricao) {
+          <p class="detalhe__descricao">{{ encontro.descricao }}</p>
+        }
+
+        <div class="detalhe__acoes">
+          <button
+            type="button"
+            class="btn"
+            [class.btn--primary]="!encontro.vou"
+            [class.btn--secondary]="encontro.vou"
+            [attr.aria-pressed]="encontro.vou"
+            (click)="alternarPresenca()"
+          >
+            {{ encontro.vou ? 'Cancelar presença' : 'Vou!' }}
+          </button>
+          <a class="btn btn--ghost" [href]="comoChegar()" target="_blank" rel="noopener">
+            Como chegar <span class="sr-only">(abre em nova aba)</span>
+          </a>
+        </div>
+
+        @if (encontro.vou) {
+          <p class="tag" role="status">Presença confirmada. Até lá!</p>
+        }
+      </div>
+
+      <app-mapa
+        [rotulo]="'Mapa do encontro ' + encontro.titulo"
+        [centro]="encontro.posicao"
+        [zoom]="16"
+        [marcadores]="marcadores()"
+      />
+    </div>
+  } @else if (carregados()) {
+    <div class="card vazio">
+      <h1 class="page__title">Encontro não encontrado</h1>
+      <p class="page__subtitle">Ele pode ter sido cancelado ou o link está incorreto.</p>
+      <p class="detalhe__voltar">
+        <a class="btn btn--primary" routerLink="/encontros">Ver encontros</a>
+      </p>
+    </div>
+  }
+</section>

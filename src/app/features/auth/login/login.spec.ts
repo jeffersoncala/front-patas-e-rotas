@@ -1,12 +1,14 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
+import { AuthService } from '../../../core/auth.service';
 import { Login } from './login';
+import { provideApiFalsa } from '../../../testes/api-falsa';
 
 describe('Login', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [Login],
-      providers: [provideRouter([])],
+      providers: [provideRouter([]), provideApiFalsa()],
     }).compileComponents();
   });
 
@@ -34,6 +36,7 @@ describe('Login', () => {
     const fixture = criar();
     const router = TestBed.inject(Router);
     const navegar = vi.spyOn(router, 'navigateByUrl');
+    const entrar = vi.spyOn(TestBed.inject(AuthService), 'entrar');
 
     (fixture.nativeElement.querySelector('form') as HTMLFormElement).dispatchEvent(
       new Event('submit'),
@@ -41,6 +44,7 @@ describe('Login', () => {
     await fixture.whenStable();
 
     expect(navegar).not.toHaveBeenCalled();
+    expect(entrar).not.toHaveBeenCalled();
     const erros = fixture.nativeElement.querySelectorAll('.field__error');
     expect(erros.length).toBe(2);
   });
@@ -75,6 +79,7 @@ describe('Login', () => {
     const fixture = criar();
     const router = TestBed.inject(Router);
     const navegar = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+    const entrar = vi.spyOn(TestBed.inject(AuthService), 'entrar').mockResolvedValue();
 
     digitar(input(fixture, 'email'), 'tutor@exemplo.com');
     digitar(input(fixture, 'senha'), 'segredo123');
@@ -82,5 +87,6 @@ describe('Login', () => {
       new Event('submit'),
     );
     await vi.waitFor(() => expect(navegar).toHaveBeenCalledWith('/'));
+    expect(entrar).toHaveBeenCalledWith('tutor@exemplo.com', 'segredo123', true);
   });
 });

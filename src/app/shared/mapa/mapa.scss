@@ -61,3 +61,35 @@
   stroke: #fff;
   stroke-opacity: 0.9;
 }
+
+/* Tema escuro: escurece os tiles do OSM e adapta os controles do Leaflet */
+@media (prefers-color-scheme: dark) {
+  .mapa .leaflet-tile-pane {
+    filter: invert(1) hue-rotate(180deg) brightness(0.9) contrast(0.9);
+  }
+
+  .mapa .leaflet-container {
+    background: var(--ink-100);
+  }
+
+  .mapa .leaflet-bar a,
+  .mapa .leaflet-control-attribution {
+    color: var(--ink-900);
+    background: var(--surface);
+    border-color: var(--ink-100);
+  }
+
+  .mapa .leaflet-bar a:hover {
+    background: var(--surface-muted);
+  }
+
+  .mapa .leaflet-control-attribution a {
+    color: var(--brand-700);
+  }
+
+  .mapa .leaflet-popup-content-wrapper,
+  .mapa .leaflet-popup-tip {
+    color: var(--ink-900);
+    background: var(--surface);
+  }
+}

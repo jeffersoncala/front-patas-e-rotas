@@ -13,7 +13,13 @@ interface PaginaPasseios {
   proximoCursor: string | null;
 }
 
-export type NovoPasseio = Pick<Passeio, 'pontos' | 'duracaoMin' | 'texto' | 'rotaId' | 'rotaNome'>;
+export type NovoPasseio = Pick<
+  Passeio,
+  'pontos' | 'duracaoMin' | 'texto' | 'rotaId' | 'rotaNome'
+> & {
+  /** Pets do tutor que foram no passeio; vazio deixa a API usar todos. */
+  petIds: number[];
+};
 
 @Injectable({ providedIn: 'root' })
 export class PasseiosService {
@@ -65,9 +71,13 @@ export class PasseiosService {
     );
   }
 
-  async registrar({ rotaId, rotaNome, ...dados }: NovoPasseio): Promise<Passeio> {
+  async registrar({ rotaId, rotaNome, petIds, ...dados }: NovoPasseio): Promise<Passeio> {
     // A API pega o nome da rota pelo id; `rotaNome` só vale para passeio livre.
-    const corpo = rotaId === null ? { ...dados, rotaNome } : { ...dados, rotaId };
+    const corpo = {
+      ...dados,
+      ...(rotaId === null ? { rotaNome } : { rotaId }),
+      ...(petIds.length > 0 && { petIds }),
+    };
     const passeio = await firstValueFrom(this.http.post<Passeio>(`${API_URL}/passeios`, corpo));
     this._feed.update((lista) => [passeio, ...lista]);
     this._meus.update((lista) => [passeio, ...lista]);

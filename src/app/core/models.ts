@@ -4,16 +4,28 @@ export type LatLng = [number, number];
 export type Especie = 'cachorro' | 'gato' | 'outro';
 export type Porte = 'pequeno' | 'medio' | 'grande';
 
-export interface Perfil {
-  tutor: string;
-  email: string;
-  pet: string;
+export interface Pet {
+  id: number;
+  nome: string;
   especie: Especie;
   raca: string;
   idadeAnos: number;
   porte: Porte;
   bio: string;
+  /** Caminho da foto na API (`/fotos/<id>`); use `urlFoto` para exibir. */
+  foto: string | null;
+}
+
+export type DadosPet = Omit<Pet, 'id' | 'foto'>;
+
+export interface Perfil {
+  tutor: string;
+  email: string;
+  /** Caminho da foto na API (`/fotos/<id>`); use `urlFoto` para exibir. */
+  foto: string | null;
   metaSemanalKm: number;
+  /** Na ordem em que foram cadastrados; vazio numa conta nova. */
+  pets: Pet[];
 }
 
 export interface Encontro {
@@ -26,7 +38,7 @@ export interface Encontro {
   data: string;
   confirmados: number;
   vou: boolean;
-  /** "<tutor> e <pet>", ex. "Ana e Mel". */
+  /** Tutor e pets, ex. "Ana e Mel" ou "Ana, Mel e Thor". */
   organizador: string;
   /** Se quem está logado organizou o encontro. */
   meu: boolean;
@@ -48,10 +60,15 @@ export interface Rota {
   minha: boolean;
 }
 
+/** Pet que foi num passeio. */
+export type PetDoPasseio = Pick<Pet, 'id' | 'nome' | 'foto'>;
+
 export interface Passeio {
   id: number;
-  pet: string;
+  /** Vazio se os pets já foram removidos do perfil do tutor. */
+  pets: PetDoPasseio[];
   tutor: string;
+  fotoTutor: string | null;
   /** Data e hora em ISO 8601. */
   data: string;
   rotaId: number | null;
@@ -86,3 +103,13 @@ export const PORTES: readonly { id: Porte; label: string }[] = [
   { id: 'medio', label: 'Médio' },
   { id: 'grande', label: 'Grande' },
 ];
+
+/** "Mel", "Mel e Thor", "Mel, Thor e Pipoca". */
+export function juntarNomes(nomes: readonly string[]): string {
+  return nomes.length < 2 ? (nomes[0] ?? '') : `${nomes.slice(0, -1).join(', ')} e ${nomes.at(-1)}`;
+}
+
+/** Nomes dos pets do perfil ou do passeio, já juntos para exibir. */
+export function nomesPets(pets: readonly Pick<Pet, 'nome'>[]): string {
+  return juntarNomes(pets.map((p) => p.nome));
+}

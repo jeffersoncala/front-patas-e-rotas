@@ -10,7 +10,7 @@ import {
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { formatarDuracao, formatarKm, tempoRelativo } from '../../../core/formato';
-import { Passeio } from '../../../core/models';
+import { Passeio, nomesPets } from '../../../core/models';
 import { PasseiosService } from '../../../core/passeios.service';
 import { RotasService } from '../../../core/rotas.service';
 import { Mapa, MarcadorMapa, TrajetoMapa } from '../../../shared/mapa/mapa';
@@ -32,6 +32,7 @@ export class RotaDetalhe {
   protected readonly formatarKm = formatarKm;
   protected readonly formatarDuracao = formatarDuracao;
   protected readonly tempoRelativo = tempoRelativo;
+  protected readonly nomesPets = nomesPets;
 
   protected readonly rota = computed(() => this.rotasService.porId(this.id()));
   protected readonly carregadas = this.rotasService.carregadas;

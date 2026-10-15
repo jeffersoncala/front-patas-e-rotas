@@ -5,17 +5,46 @@
   align-items: flex-start;
 }
 
-.perfil__avatar {
-  display: grid;
+/* Foto com os botões de trocar/remover embaixo */
+.foto {
+  display: flex;
+  flex-direction: column;
   flex-shrink: 0;
+  gap: 0.5rem;
+  align-items: center;
+  width: 7.5rem;
+}
+
+.foto__circulo {
+  display: grid;
   place-items: center;
-  width: 5rem;
-  height: 5rem;
-  font-size: 2rem;
+  width: 4.5rem;
+  height: 4.5rem;
+  overflow: hidden;
+  font-size: 1.8rem;
   font-weight: 800;
   color: #fff;
   background: linear-gradient(150deg, var(--brand-500), var(--brand-700));
   border-radius: 50%;
+
+  &--tutor {
+    width: 5.5rem;
+    height: 5.5rem;
+    font-size: 2.2rem;
+    background: linear-gradient(150deg, var(--accent-500), var(--accent-600));
+  }
+
+  &--enviando {
+    opacity: 0.5;
+  }
+}
+
+.foto__acoes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  align-items: center;
+  text-align: center;
 }
 
 .perfil__info {
@@ -23,15 +52,75 @@
   min-width: 14rem;
 }
 
-.perfil__bio {
-  margin-top: 0.75rem;
+.perfil__meta {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--ink-700);
+}
+
+.pets {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.pet {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-start;
+  padding-block: 1rem;
+
+  & + & {
+    border-top: 1px solid var(--ink-100);
+  }
+
+  &:first-child {
+    padding-top: 0.25rem;
+  }
+
+  &:last-child {
+    padding-bottom: 0;
+  }
+}
+
+.pet__info {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 14rem;
+
+  .perfil__acoes {
+    margin-top: 0.4rem;
+  }
+}
+
+.pet__nome {
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.pet__descricao {
+  font-size: 0.9rem;
+  color: var(--ink-500);
+}
+
+.pet__bio {
   line-height: 1.5;
 }
 
-.perfil__tutor {
-  margin-top: 0.5rem;
-  font-size: 0.85rem;
-  color: var(--ink-500);
+.confirmar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  margin-top: 0.4rem;
+  font-size: 0.9rem;
+  background: var(--danger-100);
+  border-radius: var(--radius-sm);
 }
 
 .perfil__acoes {

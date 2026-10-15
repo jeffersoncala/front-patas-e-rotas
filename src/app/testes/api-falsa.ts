@@ -11,19 +11,34 @@ import { of, throwError } from 'rxjs';
 import { API_URL } from '../core/api';
 import { authInterceptor } from '../core/auth.interceptor';
 import { distanciaTrajeto } from '../core/geo';
-import { Encontro, Passeio, Perfil, ResumoPerfil, Rota } from '../core/models';
+import {
+  DadosPet,
+  Encontro,
+  Passeio,
+  Perfil,
+  ResumoPerfil,
+  Rota,
+  juntarNomes,
+} from '../core/models';
 import { ENCONTROS_EXEMPLO, PASSEIOS_EXEMPLO, ROTAS_EXEMPLO } from './dados-exemplo';
 
 export const PERFIL_EXEMPLO: Perfil = {
   tutor: 'Jeff',
   email: 'tutor@exemplo.com',
-  pet: 'Bolota',
-  especie: 'cachorro',
-  raca: 'Vira-lata caramelo',
-  idadeAnos: 4,
-  porte: 'medio',
-  bio: 'Especialista em cheirar postes e fazer amizade com qualquer um que tenha petisco.',
+  foto: null,
   metaSemanalKm: 15,
+  pets: [
+    {
+      id: 1,
+      nome: 'Bolota',
+      especie: 'cachorro',
+      raca: 'Vira-lata caramelo',
+      idadeAnos: 4,
+      porte: 'medio',
+      bio: 'Especialista em cheirar postes e fazer amizade com qualquer um que tenha petisco.',
+      foto: null,
+    },
+  ],
 };
 
 /** Grava uma sessão aberta, como se o tutor já tivesse entrado. */
@@ -51,11 +66,11 @@ const maisRecentes = (lista: Passeio[]) => [...lista].sort((a, b) => b.data.loca
 
 /**
  * HttpClient que responde na hora, sem rede, com os dados de exemplo e o mesmo contrato
- * da API (`pataserotas-backend`). Cada chamada começa com um banco novo.
+ * da API (`pataserotas-backend`). Cada chamada começa com um banco novo, com o `perfil` dado.
  */
-export function provideApiFalsa(): EnvironmentProviders {
+export function provideApiFalsa(perfil: Perfil = PERFIL_EXEMPLO): EnvironmentProviders {
   const banco: Banco = structuredClone({
-    perfil: PERFIL_EXEMPLO,
+    perfil,
     rotas: ROTAS_EXEMPLO,
     encontros: ENCONTROS_EXEMPLO,
     passeios: PASSEIOS_EXEMPLO,
@@ -71,10 +86,13 @@ export function provideApiFalsa(): EnvironmentProviders {
 }
 
 function responder(banco: Banco, req: HttpRequest<unknown>): Resposta {
-  const [recurso, idTexto, acao] = req.url.slice(API_URL.length).split('/').filter(Boolean);
-  const id = Number(idTexto);
+  // "/perfil/pets/3/foto" vira "PATCH /perfil/pets/:id/foto", com id = 3.
+  const partes = req.url.slice(API_URL.length).split('/').filter(Boolean);
+  const numerico = (parte: string) => /^\d+$/.test(parte);
+  const id = Number(partes.find(numerico));
   const corpo = (req.body ?? {}) as Record<string, unknown>;
-  const rota = `${req.method} /${recurso}${idTexto ? (Number.isNaN(id) ? `/${idTexto}` : '/:id') : ''}${acao ? `/${acao}` : ''}`;
+  const rota = `${req.method} /${partes.map((p) => (numerico(p) ? ':id' : p)).join('/')}`;
+  const { perfil } = banco;
 
   switch (rota) {
     case 'POST /auth/login':
@@ -89,8 +107,37 @@ function responder(banco: Banco, req: HttpRequest<unknown>): Resposta {
     case 'GET /perfil':
       return ok(banco.perfil);
     case 'PATCH /perfil':
-      banco.perfil = { ...banco.perfil, ...corpo };
+      banco.perfil = { ...perfil, ...corpo };
       return ok(banco.perfil);
+    case 'PUT /perfil/foto':
+      perfil.foto = `/fotos/tutor-${Date.now()}`;
+      return ok(perfil);
+    case 'DELETE /perfil/foto':
+      perfil.foto = null;
+      return ok(perfil);
+    case 'POST /perfil/pets':
+      perfil.pets.push({
+        ...(corpo as unknown as DadosPet),
+        id: proximoId(perfil.pets),
+        foto: null,
+      });
+      return ok(perfil, 201);
+    case 'PATCH /perfil/pets/:id':
+      return achar(perfil.pets, id, (pet) => {
+        Object.assign(pet, corpo);
+        return ok(perfil);
+      });
+    case 'DELETE /perfil/pets/:id':
+      return achar(perfil.pets, id, () => {
+        perfil.pets = perfil.pets.filter((p) => p.id !== id);
+        return ok(perfil);
+      });
+    case 'PUT /perfil/pets/:id/foto':
+    case 'DELETE /perfil/pets/:id/foto':
+      return achar(perfil.pets, id, (pet) => {
+        pet.foto = req.method === 'PUT' ? `/fotos/pet-${id}-${Date.now()}` : null;
+        return ok(perfil);
+      });
     case 'GET /perfil/resumo':
       return ok(resumo(banco));
 
@@ -135,7 +182,7 @@ function responder(banco: Banco, req: HttpRequest<unknown>): Resposta {
         id: proximoId(banco.encontros),
         confirmados: 1,
         vou: true,
-        organizador: `${banco.perfil.tutor} e ${banco.perfil.pet}`,
+        organizador: juntarNomes([perfil.tutor, ...perfil.pets.map((p) => p.nome)]),
         meu: true,
       };
       banco.encontros.push(novo);
@@ -161,15 +208,18 @@ function responder(banco: Banco, req: HttpRequest<unknown>): Resposta {
       const dados = corpo as Pick<Passeio, 'pontos' | 'duracaoMin' | 'texto'> & {
         rotaId?: number;
         rotaNome?: string;
+        petIds?: number[];
       };
+      const pets = perfil.pets.filter((p) => !dados.petIds || dados.petIds.includes(p.id));
       const rotaDoPasseio = banco.rotas.find((r) => r.id === dados.rotaId);
       const novo: Passeio = {
         pontos: dados.pontos,
         duracaoMin: dados.duracaoMin,
         texto: dados.texto,
         id: proximoId(banco.passeios),
-        pet: banco.perfil.pet,
-        tutor: banco.perfil.tutor,
+        pets: pets.map(({ id, nome, foto }) => ({ id, nome, foto })),
+        tutor: perfil.tutor,
+        fotoTutor: perfil.foto,
         data: new Date().toISOString(),
         rotaId: rotaDoPasseio?.id ?? null,
         rotaNome: rotaDoPasseio?.nome ?? dados.rotaNome ?? 'Passeio livre',

@@ -1,12 +1,13 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
+import { Avatar } from '../avatar/avatar';
 import { Pata } from '../pata/pata';
 
 /** Layout das telas internas: barra superior com a navegação e o conteúdo da rota. */
 @Component({
   selector: 'app-shell',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, Pata],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, Avatar, Pata],
   templateUrl: './shell.html',
   styleUrl: './shell.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -61,7 +61,8 @@
             <li class="item">
               <div class="item__info">
                 <p class="item__title">
-                  {{ passeio.pet }} <span class="item__meta">· {{ tempoRelativo(passeio.data) }}</span>
+                  {{ nomesPets(passeio.pets) || passeio.tutor }}
+                  <span class="item__meta">· {{ tempoRelativo(passeio.data) }}</span>
                 </p>
                 @if (passeio.texto) {
                   <p class="texto">{{ passeio.texto }}</p>

@@ -302,6 +302,25 @@ textarea.field__input {
   }
 }
 
+/* Botão com cara de link, para ações secundárias */
+.link-btn {
+  padding: 0.15rem 0.25rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--brand-700);
+  background: none;
+  border: 0;
+
+  &:hover:not(:disabled) {
+    text-decoration: underline;
+  }
+
+  &:disabled {
+    cursor: progress;
+    opacity: 0.7;
+  }
+}
+
 /* ==========================================================================
    Blocos das telas internas
    ========================================================================== */

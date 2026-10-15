@@ -3,10 +3,48 @@
   display: block;
 }
 
-.tabs {
-  align-self: flex-start;
-}
-
 .check {
   font-size: 0.9rem;
+}
+
+.foto-campo {
+  display: flex;
+  gap: 0.9rem;
+  align-items: center;
+}
+
+.foto-campo__circulo {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  overflow: hidden;
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #fff;
+  background: linear-gradient(150deg, var(--accent-500), var(--accent-600));
+  border-radius: 50%;
+
+  &--preparando {
+    opacity: 0.5;
+  }
+}
+
+.foto-campo__texto {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.foto-campo__opcional {
+  font-weight: 400;
+  color: var(--ink-500);
+}
+
+.foto-campo__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
 }

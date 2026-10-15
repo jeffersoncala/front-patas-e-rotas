@@ -3,13 +3,15 @@ import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
 import { EncontrosService } from '../../core/encontros.service';
 import { formatarHora, formatarKm, partesData, tempoRelativo } from '../../core/formato';
+import { nomesPets } from '../../core/models';
 import { PasseiosService } from '../../core/passeios.service';
 import { RotasService } from '../../core/rotas.service';
+import { Avatar } from '../../shared/avatar/avatar';
 import { Mapa, MarcadorMapa } from '../../shared/mapa/mapa';
 
 @Component({
   selector: 'app-home',
-  imports: [RouterLink, Mapa],
+  imports: [RouterLink, Avatar, Mapa],
   templateUrl: './home.html',
   styleUrl: './home.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -20,6 +22,7 @@ export class Home {
   private readonly rotasService = inject(RotasService);
 
   protected readonly perfil = inject(AuthService).perfil;
+  protected readonly nomesDosPets = computed(() => nomesPets(this.perfil()?.pets ?? []));
   protected readonly passeios = this.passeiosService.passeios;
   protected readonly kmSemana = this.passeiosService.kmSemana;
   protected readonly passeiosSemana = this.passeiosService.passeiosSemana;
@@ -59,6 +62,7 @@ export class Home {
   protected readonly formatarHora = formatarHora;
   protected readonly partesData = partesData;
   protected readonly tempoRelativo = tempoRelativo;
+  protected readonly nomesPets = nomesPets;
 
   constructor() {
     this.encontrosService.carregar();

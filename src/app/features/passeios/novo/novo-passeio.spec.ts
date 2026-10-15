@@ -1,12 +1,12 @@
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter, Router } from '@angular/router';
-import { LatLng } from '../../../core/models';
+import { LatLng, Perfil } from '../../../core/models';
 import { PasseiosService } from '../../../core/passeios.service';
 import { RotasService } from '../../../core/rotas.service';
 import { Mapa } from '../../../shared/mapa/mapa';
 import { NovoPasseio } from './novo-passeio';
-import { provideApiFalsa } from '../../../testes/api-falsa';
+import { PERFIL_EXEMPLO, entrarComoExemplo, provideApiFalsa } from '../../../testes/api-falsa';
 
 const A: LatLng = [-22.9437, -43.1822];
 const B: LatLng = [-22.9463, -43.1814];
@@ -14,6 +14,7 @@ const C: LatLng = [-22.9488, -43.1799];
 
 describe('NovoPasseio', () => {
   beforeEach(async () => {
+    entrarComoExemplo();
     await TestBed.configureTestingModule({
       imports: [NovoPasseio],
       providers: [provideRouter([]), provideApiFalsa()],
@@ -21,6 +22,7 @@ describe('NovoPasseio', () => {
   });
 
   afterEach(() => {
+    localStorage.clear();
     delete (navigator as { geolocation?: unknown }).geolocation;
     vi.useRealTimers();
   });
@@ -144,7 +146,59 @@ describe('NovoPasseio', () => {
       texto: 'Muita sombra hoje',
       rotaId: 2,
       rotaNome: rota.nome,
+      petIds: [1],
     });
+    // Com um pet só, não há o que escolher.
+    expect(fixture.nativeElement.querySelector('.pets')).toBeNull();
+  });
+
+  it('com mais de um pet, pergunta quem foi passear', async () => {
+    const perfil: Perfil = {
+      ...PERFIL_EXEMPLO,
+      pets: [
+        ...PERFIL_EXEMPLO.pets,
+        { ...PERFIL_EXEMPLO.pets[0], id: 2, nome: 'Mingau' },
+        { ...PERFIL_EXEMPLO.pets[0], id: 3, nome: 'Pingo' },
+      ],
+    };
+    localStorage.clear();
+    entrarComoExemplo(perfil);
+    TestBed.resetTestingModule();
+    await TestBed.configureTestingModule({
+      imports: [NovoPasseio],
+      providers: [provideRouter([]), provideApiFalsa(perfil)],
+    }).compileComponents();
+    const fixture = await criar(2);
+    const registrar = vi.spyOn(TestBed.inject(PasseiosService), 'registrar');
+    const navegar = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
+
+    // Todos começam marcados.
+    const pets = () =>
+      Array.from(
+        (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLButtonElement>('.pet'),
+      );
+    expect(pets().map((b) => b.getAttribute('aria-pressed'))).toEqual(['true', 'true', 'true']);
+
+    // Sem nenhum, não registra.
+    for (const b of pets()) b.click();
+    await fixture.whenStable();
+    enviar(fixture);
+    await fixture.whenStable();
+    expect(registrar).not.toHaveBeenCalled();
+    expect(fixture.nativeElement.querySelector('.pets .field__error')?.textContent).toContain(
+      'Escolha quem foi passear',
+    );
+
+    // Marcados fora de ordem, saem na ordem do perfil.
+    botao(fixture, 'Pingo').click();
+    botao(fixture, 'Bolota').click();
+    await fixture.whenStable();
+    enviar(fixture);
+
+    await vi.waitFor(() => expect(navegar).toHaveBeenCalledWith('/'));
+    expect(registrar).toHaveBeenCalledWith(expect.objectContaining({ petIds: [1, 3] }));
+    const passeio = await registrar.mock.results[0].value;
+    expect(passeio.pets.map((p: { nome: string }) => p.nome)).toEqual(['Bolota', 'Pingo']);
   });
 
   it('salva uma nova rota favorita antes de registrar', async () => {

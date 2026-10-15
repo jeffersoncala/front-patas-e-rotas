@@ -4,17 +4,16 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
 import { mensagemDeErro } from '../../../core/api';
 import { AuthService } from '../../../core/auth.service';
-import { ESPECIES, Especie, PORTES, Porte } from '../../../core/models';
+import { REDUZIR_IMAGEM, TIPOS_ACEITOS } from '../../../core/imagem';
+import { Avatar } from '../../../shared/avatar/avatar';
 import { AuthLayout } from '../auth-layout/auth-layout';
 
-/** Teclas que movem a seleção dentro de um grupo `role="radiogroup"`. */
-const PASSOS: Record<string, number> = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 };
+type Campo = 'tutor' | 'email' | 'senha' | 'termos';
 
-type Campo = 'tutor' | 'email' | 'senha' | 'pet' | 'especie' | 'porte' | 'termos';
-
+/** Cadastro só do tutor; os pets entram depois, pelo perfil. */
 @Component({
   selector: 'app-cadastro',
-  imports: [ReactiveFormsModule, RouterLink, AuthLayout],
+  imports: [ReactiveFormsModule, RouterLink, Avatar, AuthLayout],
   templateUrl: './cadastro.html',
   styleUrl: './cadastro.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -23,17 +22,14 @@ export class Cadastro {
   private readonly router = inject(Router);
   private readonly auth = inject(AuthService);
   private readonly fb = inject(FormBuilder).nonNullable;
+  private readonly reduzirImagem = inject(REDUZIR_IMAGEM);
 
-  protected readonly especies = ESPECIES;
-  protected readonly portes = PORTES;
+  protected readonly tiposAceitos = TIPOS_ACEITOS;
 
   protected readonly form = this.fb.group({
     tutor: ['', [Validators.required]],
     email: ['', [Validators.required, Validators.email]],
     senha: ['', [Validators.required, Validators.minLength(6)]],
-    pet: ['', [Validators.required]],
-    especie: this.fb.control<Especie | null>(null, Validators.required),
-    porte: this.fb.control<Porte | null>(null, Validators.required),
     termos: [false, [Validators.requiredTrue]],
   });
 
@@ -44,14 +40,17 @@ export class Cadastro {
   protected readonly enviando = signal(false);
   protected readonly erroGeral = signal<string | null>(null);
 
-  protected readonly especie = computed(() => {
-    this.formEvents();
-    return this.form.controls.especie.value;
-  });
+  // --- Foto (opcional) -------------------------------------------------------
+  /** Já reduzida, em data URL: serve de pré-visualização e vai assim para a API. */
+  protected readonly foto = signal<string | null>(null);
+  /** Foto sendo reduzida; o envio espera ela ficar pronta. */
+  protected readonly preparandoFoto = signal(false);
+  protected readonly erroFoto = signal<string | null>(null);
 
-  protected readonly porte = computed(() => {
+  /** Nome digitado, para a inicial no lugar da foto. */
+  protected readonly nomeTutor = computed(() => {
     this.formEvents();
-    return this.form.controls.porte.value;
+    return this.form.controls.tutor.value;
   });
 
   protected readonly tutorErro = computed(() =>
@@ -72,18 +71,6 @@ export class Cadastro {
     }),
   );
 
-  protected readonly petErro = computed(() =>
-    this.erro('pet', { required: 'Qual é o nome do seu pet?' }),
-  );
-
-  protected readonly especieErro = computed(() =>
-    this.erro('especie', { required: 'Escolha a espécie do pet.' }),
-  );
-
-  protected readonly porteErro = computed(() =>
-    this.erro('porte', { required: 'Escolha o porte do pet.' }),
-  );
-
   protected readonly termosErro = computed(() =>
     this.erro('termos', { required: 'É preciso aceitar os termos para continuar.' }),
   );
@@ -92,28 +79,26 @@ export class Cadastro {
     this.senhaVisivel.update((visivel) => !visivel);
   }
 
-  protected escolherEspecie(valor: Especie): void {
-    this.form.controls.especie.setValue(valor);
-    this.form.controls.especie.markAsTouched();
+  protected async fotoEscolhida(seletor: HTMLInputElement): Promise<void> {
+    const arquivo = seletor.files?.[0];
+    // Limpa para que escolher o mesmo arquivo de novo também dispare o `change`.
+    seletor.value = '';
+    if (!arquivo) return;
+
+    this.erroFoto.set(null);
+    this.preparandoFoto.set(true);
+    try {
+      this.foto.set(await this.reduzirImagem(arquivo));
+    } catch (erro) {
+      this.erroFoto.set(erro instanceof Error ? erro.message : 'Não conseguimos abrir essa imagem.');
+    } finally {
+      this.preparandoFoto.set(false);
+    }
   }
 
-  protected escolherPorte(valor: Porte): void {
-    this.form.controls.porte.setValue(valor);
-    this.form.controls.porte.markAsTouched();
-  }
-
-  /** Setas do teclado movem foco e seleção entre as opções do grupo. */
-  protected moverEscolha(evento: KeyboardEvent): void {
-    const passo = PASSOS[evento.key];
-    if (!passo) return;
-    evento.preventDefault();
-
-    const grupo = evento.currentTarget as HTMLElement;
-    const opcoes = Array.from(grupo.querySelectorAll<HTMLButtonElement>('[role="radio"]'));
-    const atual = opcoes.indexOf(evento.target as HTMLButtonElement);
-    const proxima = opcoes[(atual + passo + opcoes.length) % opcoes.length];
-    proxima.click();
-    proxima.focus();
+  protected removerFoto(): void {
+    this.foto.set(null);
+    this.erroFoto.set(null);
   }
 
   protected async cadastrar(): Promise<void> {
@@ -123,11 +108,13 @@ export class Cadastro {
       this.form.markAllAsTouched();
       return;
     }
+    if (this.preparandoFoto()) return;
 
-    const { tutor, email, senha, pet, especie, porte } = this.form.getRawValue();
+    const { tutor, email, senha } = this.form.getRawValue();
+    const fotoTutor = this.foto();
     this.enviando.set(true);
     try {
-      await this.auth.cadastrar({ tutor, email, senha, pet, especie: especie!, porte: porte! });
+      await this.auth.cadastrar({ tutor, email, senha, ...(fotoTutor && { fotoTutor }) });
       await this.router.navigateByUrl('/');
     } catch (erro) {
       this.erroGeral.set(

@@ -3,6 +3,11 @@ import { environment } from '../../environments/environment';
 
 export const API_URL = environment.apiUrl.replace(/\/$/, '');
 
+/** Endereço completo de uma foto, a partir do caminho que a API devolve (`/fotos/<id>`). */
+export function urlFoto(caminho: string | null | undefined): string | null {
+  return caminho ? `${API_URL}${caminho}` : null;
+}
+
 /** Corpo dos erros da API: `{ timestamp, status, erro, mensagem, campos? }`. */
 interface CorpoErro {
   mensagem?: unknown;

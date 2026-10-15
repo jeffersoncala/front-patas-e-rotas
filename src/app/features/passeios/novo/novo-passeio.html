@@ -135,6 +135,32 @@
         }
       </div>
 
+      @if (!pets().length) {
+        <p class="field__hint">
+          Cadastre seus pets no <a routerLink="/perfil">perfil</a> para marcar quem foi passear.
+        </p>
+      } @else if (pets().length > 1) {
+        <fieldset class="field pets">
+          <legend class="field__label">Quem foi passear?</legend>
+          <div class="pets__lista">
+            @for (pet of pets(); track pet.id) {
+              <button
+                type="button"
+                class="pet"
+                [attr.aria-pressed]="petsEscolhidos().includes(pet.id)"
+                (click)="alternarPet(pet.id)"
+              >
+                <span class="pet__foto"><app-avatar [foto]="pet.foto" [nome]="pet.nome" /></span>
+                {{ pet.nome }}
+              </button>
+            }
+          </div>
+          @if (petsErro(); as erro) {
+            <span class="field__error" role="alert">{{ erro }}</span>
+          }
+        </fieldset>
+      }
+
       <div class="field">
         <label class="field__label" for="texto">Como foi o passeio?</label>
         <textarea

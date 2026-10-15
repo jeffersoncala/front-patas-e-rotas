@@ -22,8 +22,12 @@
       }
     </nav>
 
-    <a class="avatar" routerLink="/perfil" [attr.aria-label]="'Perfil de ' + (perfil()?.pet ?? 'seu pet')">
-      {{ perfil()?.pet?.[0] ?? '?' }}
+    <a
+      class="avatar"
+      routerLink="/perfil"
+      [attr.aria-label]="'Perfil de ' + (perfil()?.tutor ?? 'você')"
+    >
+      <app-avatar [foto]="perfil()?.foto" [nome]="perfil()?.tutor" />
     </a>
   </div>
 </header>

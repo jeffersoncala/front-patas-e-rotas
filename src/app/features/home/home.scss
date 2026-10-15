@@ -89,16 +89,28 @@ app-mapa {
   padding: 1rem 0;
 }
 
+/* Vários pets no mesmo passeio: avatares sobrepostos */
+.post__avatares {
+  display: flex;
+  flex-shrink: 0;
+}
+
 .post__avatar {
   display: grid;
   flex-shrink: 0;
   place-items: center;
   width: 2.75rem;
   height: 2.75rem;
+  overflow: hidden;
   font-weight: 800;
   color: var(--brand-700);
   background: var(--brand-100);
+  border: 2px solid var(--surface);
   border-radius: 50%;
+
+  & + & {
+    margin-left: -1rem;
+  }
 }
 
 .post__body {

@@ -250,12 +250,20 @@ export const ENCONTROS_EXEMPLO: Encontro[] = [
   },
 ];
 
+/** Ids dos pets de exemplo; o do Bolota é o mesmo do `PERFIL_EXEMPLO`. */
+const ID_PET: Record<string, number> = { Bolota: 1, Mel: 11, Thor: 12, Pipoca: 13 };
+
 function passeio(
-  base: Omit<Passeio, 'distanciaKm' | 'pontos' | 'rotaNome'> & { rota: Rota },
+  base: Omit<Passeio, 'distanciaKm' | 'pontos' | 'rotaNome' | 'pets' | 'fotoTutor'> & {
+    rota: Rota;
+    pet: string;
+  },
 ): Passeio {
-  const { rota, ...resto } = base;
+  const { rota, pet, ...resto } = base;
   return {
     ...resto,
+    pets: [{ id: ID_PET[pet], nome: pet, foto: null }],
+    fotoTutor: null,
     rotaNome: rota.nome,
     pontos: rota.pontos,
     distanciaKm: distanciaTrajeto(rota.pontos),

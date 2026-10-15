@@ -6,6 +6,7 @@ import {
   effect,
   inject,
   input,
+  linkedSignal,
   numberAttribute,
   signal,
   untracked,
@@ -14,11 +15,13 @@ import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { mensagemDeErro } from '../../../core/api';
+import { AuthService } from '../../../core/auth.service';
 import { formatarKm } from '../../../core/formato';
 import { CENTRO_PADRAO, distanciaEntre, distanciaTrajeto } from '../../../core/geo';
-import { LatLng, Rota } from '../../../core/models';
+import { LatLng, Pet, Rota } from '../../../core/models';
 import { PasseiosService } from '../../../core/passeios.service';
 import { RotasService } from '../../../core/rotas.service';
+import { Avatar } from '../../../shared/avatar/avatar';
 import { Mapa, MarcadorMapa, TrajetoMapa } from '../../../shared/mapa/mapa';
 
 type Modo = 'desenho' | 'gps';
@@ -44,7 +47,7 @@ function formatarCronometro(ms: number): string {
 
 @Component({
   selector: 'app-novo-passeio',
-  imports: [ReactiveFormsModule, RouterLink, Mapa],
+  imports: [ReactiveFormsModule, RouterLink, Avatar, Mapa],
   templateUrl: './novo-passeio.html',
   styleUrl: './novo-passeio.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -54,6 +57,7 @@ export class NovoPasseio {
   private readonly rotasService = inject(RotasService);
   private readonly passeiosService = inject(PasseiosService);
   private readonly fb = inject(FormBuilder);
+  private readonly perfil = inject(AuthService).perfil;
 
   /** Id de uma rota existente, vindo de `?rota=ID`. */
   readonly rota = input(undefined, { transform: numberAttribute });
@@ -80,6 +84,21 @@ export class NovoPasseio {
     initialValue: false,
   });
 
+  // --- Pets ------------------------------------------------------------------
+  protected readonly pets = computed(() => this.perfil()?.pets ?? []);
+  /**
+   * Começa com todos. Se o perfil for recarregado, mantém a escolha (sem pets que
+   * deixaram de existir); se não sobrar nenhum, volta a marcar todos.
+   */
+  protected readonly petsEscolhidos = linkedSignal<Pet[], number[]>({
+    source: this.pets,
+    computation: (pets, anterior) => {
+      const ids = pets.map((p) => p.id);
+      const mantidos = anterior?.value.filter((id) => ids.includes(id)) ?? [];
+      return mantidos.length ? mantidos : ids;
+    },
+  });
+
   protected readonly tentouEnviar = signal(false);
   protected readonly enviando = signal(false);
   protected readonly erroGeral = signal<string | null>(null);
@@ -102,6 +121,15 @@ export class NovoPasseio {
     this.tentouEnviar() && this.pontos().length < 2
       ? 'Marque pelo menos 2 pontos do trajeto.'
       : null,
+  );
+
+  /** Sem o perfil carregado não há o que escolher: a API usa todos os pets. */
+  private readonly faltaPet = computed(
+    () => this.pets().length > 0 && !this.petsEscolhidos().length,
+  );
+
+  protected readonly petsErro = computed(() =>
+    this.tentouEnviar() && this.faltaPet() ? 'Escolha quem foi passear.' : null,
   );
 
   protected readonly duracaoErro = computed(() => {
@@ -186,6 +214,12 @@ export class NovoPasseio {
       nomeRota: rota.nome,
       bairroRota: rota.bairro,
     });
+  }
+
+  protected alternarPet(id: number): void {
+    this.petsEscolhidos.update((ids) =>
+      ids.includes(id) ? ids.filter((i) => i !== id) : [...ids, id],
+    );
   }
 
   protected escolherModo(modo: Modo): void {
@@ -295,7 +329,7 @@ export class NovoPasseio {
 
     if (this.estadoGps() === 'gravando') this.encerrar();
 
-    if (this.pontos().length < 2 || this.form.invalid) {
+    if (this.pontos().length < 2 || this.form.invalid || this.faltaPet()) {
       this.form.markAllAsTouched();
       return;
     }
@@ -326,6 +360,10 @@ export class NovoPasseio {
         texto: texto.trim(),
         rotaId,
         rotaNome,
+        // Na ordem do perfil, não na ordem em que foram marcados.
+        petIds: this.pets()
+          .map((p) => p.id)
+          .filter((id) => this.petsEscolhidos().includes(id)),
       });
       await this.router.navigateByUrl('/');
     } catch (erro) {

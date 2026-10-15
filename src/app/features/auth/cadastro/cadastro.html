@@ -1,8 +1,8 @@
 <app-auth-layout
   heroTitulo="Seu pet merece uma turma pra passear."
-  heroTexto="Crie o perfil do seu bicho, encontre vizinhos de quatro patas e transforme cada volta no quarteirão em uma aventura registrada."
-  titulo="Crie o perfil do seu pet"
-  subtitulo="Leva menos de um minuto e o primeiro rolê já pode ser marcado hoje."
+  heroTexto="Crie sua conta, cadastre seus bichos, encontre vizinhos de quatro patas e transforme cada volta no quarteirão em uma aventura registrada."
+  titulo="Crie sua conta"
+  subtitulo="Leva menos de um minuto. Depois é só cadastrar seus pets no perfil."
 >
   @if (erroGeral(); as erro) {
     <p class="alert" role="alert">{{ erro }}</p>
@@ -24,6 +24,45 @@
       @if (tutorErro(); as erro) {
         <p class="field__error" id="tutor-erro" role="alert">{{ erro }}</p>
       }
+    </div>
+
+    <div class="foto-campo">
+      <span class="foto-campo__circulo" [class.foto-campo__circulo--preparando]="preparandoFoto()">
+        <app-avatar [foto]="foto()" [nome]="nomeTutor()" />
+      </span>
+      <div class="foto-campo__texto">
+        <span class="field__label">Sua foto <span class="foto-campo__opcional">(opcional)</span></span>
+        <div class="foto-campo__acoes">
+          <input
+            #seletorFoto
+            type="file"
+            hidden
+            [accept]="tiposAceitos"
+            (change)="fotoEscolhida(seletorFoto)"
+          />
+          <button
+            type="button"
+            class="btn btn--secondary btn--sm"
+            [disabled]="preparandoFoto()"
+            [attr.aria-describedby]="erroFoto() ? 'foto-erro' : null"
+            (click)="seletorFoto.click()"
+          >
+            @if (preparandoFoto()) {
+              Preparando…
+            } @else {
+              {{ foto() ? 'Trocar foto' : 'Escolher foto' }}
+            }
+          </button>
+          @if (foto()) {
+            <button type="button" class="link-btn" (click)="removerFoto()">
+              Remover <span class="sr-only">foto</span>
+            </button>
+          }
+        </div>
+        @if (erroFoto(); as erro) {
+          <p class="field__error" id="foto-erro" role="alert">{{ erro }}</p>
+        }
+      </div>
     </div>
 
     <div class="field">
@@ -77,81 +116,6 @@
     </div>
 
     <div class="field">
-      <label class="field__label" for="pet">Nome do pet</label>
-      <input
-        id="pet"
-        class="field__input"
-        formControlName="pet"
-        placeholder="Ex.: Bolota"
-        autocomplete="off"
-        [class.field__input--invalid]="petErro()"
-        [attr.aria-invalid]="petErro() ? 'true' : null"
-        [attr.aria-describedby]="petErro() ? 'pet-erro' : null"
-      />
-      @if (petErro(); as erro) {
-        <p class="field__error" id="pet-erro" role="alert">{{ erro }}</p>
-      }
-    </div>
-
-    <div class="field">
-      <span class="field__label" id="especie-label">Espécie</span>
-      <div
-        class="tabs"
-        role="radiogroup"
-        aria-labelledby="especie-label"
-        aria-required="true"
-        [attr.aria-invalid]="especieErro() ? 'true' : null"
-        [attr.aria-describedby]="especieErro() ? 'especie-erro' : null"
-        (keydown)="moverEscolha($event)"
-      >
-        @for (opcao of especies; track opcao.id; let primeira = $first) {
-          <button
-            type="button"
-            class="tabs__item"
-            role="radio"
-            [attr.aria-checked]="especie() === opcao.id"
-            [attr.tabindex]="especie() === opcao.id || (!especie() && primeira) ? 0 : -1"
-            (click)="escolherEspecie(opcao.id)"
-          >
-            {{ opcao.label }}
-          </button>
-        }
-      </div>
-      @if (especieErro(); as erro) {
-        <p class="field__error" id="especie-erro" role="alert">{{ erro }}</p>
-      }
-    </div>
-
-    <div class="field">
-      <span class="field__label" id="porte-label">Porte</span>
-      <div
-        class="tabs"
-        role="radiogroup"
-        aria-labelledby="porte-label"
-        aria-required="true"
-        [attr.aria-invalid]="porteErro() ? 'true' : null"
-        [attr.aria-describedby]="porteErro() ? 'porte-erro' : null"
-        (keydown)="moverEscolha($event)"
-      >
-        @for (opcao of portes; track opcao.id; let primeira = $first) {
-          <button
-            type="button"
-            class="tabs__item"
-            role="radio"
-            [attr.aria-checked]="porte() === opcao.id"
-            [attr.tabindex]="porte() === opcao.id || (!porte() && primeira) ? 0 : -1"
-            (click)="escolherPorte(opcao.id)"
-          >
-            {{ opcao.label }}
-          </button>
-        }
-      </div>
-      @if (porteErro(); as erro) {
-        <p class="field__error" id="porte-erro" role="alert">{{ erro }}</p>
-      }
-    </div>
-
-    <div class="field">
       <label class="check">
         <input
           id="termos"
@@ -167,7 +131,7 @@
       }
     </div>
 
-    <button type="submit" class="btn btn--primary" [disabled]="enviando()">
+    <button type="submit" class="btn btn--primary" [disabled]="enviando() || preparandoFoto()">
       {{ enviando() ? 'Criando conta…' : 'Criar conta' }}
     </button>
   </form>

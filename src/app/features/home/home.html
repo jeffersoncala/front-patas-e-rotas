@@ -3,9 +3,15 @@
   <section class="welcome">
     <div>
       <p class="welcome__eyebrow">{{ saudacao() }}, {{ perfil()?.tutor }}!</p>
-      <h1 class="welcome__title">Bora passear com {{ perfil()?.pet }} hoje?</h1>
+      @if (nomesDosPets(); as pets) {
+        <h1 class="welcome__title">Bora passear com {{ pets }} hoje?</h1>
+      } @else {
+        <h1 class="welcome__title">Bora passear hoje?</h1>
+      }
       <p class="welcome__text">
-        @if (faltaMetaKm() > 0) {
+        @if (!nomesDosPets()) {
+          Comece <a routerLink="/perfil">cadastrando seu pet no perfil</a>.
+        } @else if (faltaMetaKm() > 0) {
           Faltam {{ formatarKm(faltaMetaKm()) }} km para bater a meta da semana.
         } @else {
           Meta da semana batida! Hoje o passeio é de comemoração.
@@ -57,11 +63,25 @@
 
       <ul class="list">
         @for (passeio of passeios(); track passeio.id) {
+          @let pets = nomesPets(passeio.pets);
+          @let tutor = passeio.meu ? 'você' : passeio.tutor;
           <li class="post">
-            <span class="post__avatar" aria-hidden="true">{{ passeio.pet[0] }}</span>
+            <span class="post__avatares">
+              @for (pet of passeio.pets.slice(0, 3); track pet.id) {
+                <span class="post__avatar"><app-avatar [foto]="pet.foto" [nome]="pet.nome" /></span>
+              } @empty {
+                <span class="post__avatar">
+                  <app-avatar [foto]="passeio.fotoTutor" [nome]="passeio.tutor" />
+                </span>
+              }
+            </span>
             <div class="post__body">
               <p class="post__meta">
-                <strong>{{ passeio.pet }}</strong> com {{ passeio.meu ? 'você' : passeio.tutor }}
+                @if (pets) {
+                  <strong>{{ pets }}</strong> com {{ tutor }}
+                } @else {
+                  <strong>{{ passeio.meu ? 'Você' : passeio.tutor }}</strong>
+                }
                 <span>· {{ tempoRelativo(passeio.data) }}</span>
               </p>
               @if (passeio.texto) {
@@ -90,7 +110,7 @@
                     />
                   </svg>
                   {{ passeio.curtidas }}
-                  <span class="sr-only">curtidas, curtir passeio de {{ passeio.pet }}</span>
+                  <span class="sr-only">curtidas, curtir passeio de {{ pets || passeio.tutor }}</span>
                 </button>
               </div>
             </div>

@@ -1,77 +1,86 @@
 @if (perfil(); as perfil) {
   <div class="page">
-    <section class="card perfil">
-      <span class="perfil__avatar" aria-hidden="true">{{ perfil.pet[0] }}</span>
+    <!-- Um seletor de arquivos para todas as fotos; `escolherFoto` diz de quem é. -->
+    <input
+      #seletorFoto
+      type="file"
+      hidden
+      [accept]="tiposAceitos"
+      (change)="fotoEscolhida(seletorFoto)"
+    />
 
-      @if (!editando()) {
-        <div class="perfil__info">
-          <h1 class="page__title">{{ perfil.pet }}</h1>
-          <p class="page__subtitle">
-            {{ especie() }}{{ perfil.raca ? ' · ' + perfil.raca : '' }} ·
-            {{ perfil.idadeAnos }} {{ perfil.idadeAnos === 1 ? 'ano' : 'anos' }} · porte
-            {{ porte().toLowerCase() }}
-          </p>
-          @if (perfil.bio) {
-            <p class="perfil__bio">{{ perfil.bio }}</p>
+    @if (erro(); as mensagem) {
+      <p class="alert" role="alert">{{ mensagem }}</p>
+    }
+
+    <section class="card perfil" aria-labelledby="tutor-titulo">
+      <div class="foto">
+        <span
+          class="foto__circulo foto__circulo--tutor"
+          [class.foto__circulo--enviando]="enviandoFoto() === 'tutor'"
+        >
+          <app-avatar [foto]="perfil.foto" [nome]="perfil.tutor" />
+        </span>
+        <div class="foto__acoes">
+          <button
+            type="button"
+            class="btn btn--secondary btn--sm"
+            [disabled]="enviandoFoto() === 'tutor'"
+            (click)="escolherFoto('tutor', seletorFoto)"
+          >
+            {{
+              enviandoFoto() === 'tutor'
+                ? 'Enviando…'
+                : perfil.foto
+                  ? 'Trocar foto'
+                  : 'Adicionar foto'
+            }}
+            <span class="sr-only">de {{ perfil.tutor }}</span>
+          </button>
+          @if (perfil.foto) {
+            <button
+              type="button"
+              class="link-btn"
+              [disabled]="enviandoFoto() === 'tutor'"
+              (click)="removerFoto('tutor')"
+            >
+              Remover foto <span class="sr-only">de {{ perfil.tutor }}</span>
+            </button>
           }
-          <p class="perfil__tutor">Tutor(a): {{ perfil.tutor }} · {{ perfil.email }}</p>
+        </div>
+      </div>
+
+      @if (!editandoTutor()) {
+        <div class="perfil__info">
+          <h1 id="tutor-titulo" class="page__title">{{ perfil.tutor }}</h1>
+          <p class="page__subtitle">{{ perfil.email }}</p>
+          <p class="perfil__meta">Meta semanal: {{ perfil.metaSemanalKm }} km</p>
         </div>
         <div class="perfil__acoes">
-          <button type="button" class="btn btn--secondary btn--sm" (click)="editar()">
+          <button type="button" class="btn btn--secondary btn--sm" (click)="editarTutor()">
             Editar perfil
           </button>
           <button type="button" class="btn btn--danger btn--sm" (click)="sair()">Sair</button>
         </div>
       } @else {
-        <form class="form" [formGroup]="form" (ngSubmit)="salvar()" novalidate>
-          <h1 class="card__title">Editar perfil</h1>
+        <form class="form" [formGroup]="formTutor" (ngSubmit)="salvarTutor()" novalidate>
+          <h1 id="tutor-titulo" class="card__title">Editar perfil</h1>
 
           <div class="form__grid">
             <div class="field">
-              <label class="field__label" for="pet">Nome do pet</label>
+              <label class="field__label" for="tutor">Seu nome</label>
               <input
-                id="pet"
+                id="tutor"
                 class="field__input"
-                formControlName="pet"
-                [class.field__input--invalid]="petErro()"
-                [attr.aria-invalid]="petErro() ? 'true' : null"
-                [attr.aria-describedby]="petErro() ? 'pet-erro' : null"
+                formControlName="tutor"
+                maxlength="80"
+                [class.field__input--invalid]="tutorErro()"
+                [attr.aria-invalid]="tutorErro() ? 'true' : null"
+                [attr.aria-describedby]="tutorErro() ? 'tutor-erro' : null"
               />
-              @if (petErro(); as erro) {
-                <p class="field__error" id="pet-erro" role="alert">{{ erro }}</p>
+              @if (tutorErro(); as erro) {
+                <p class="field__error" id="tutor-erro" role="alert">{{ erro }}</p>
               }
-            </div>
-
-            <div class="field">
-              <label class="field__label" for="raca">Raça</label>
-              <input id="raca" class="field__input" formControlName="raca" placeholder="Vira-lata" />
-            </div>
-
-            <div class="field">
-              <label class="field__label" for="idade">Idade (anos)</label>
-              <input
-                id="idade"
-                type="number"
-                min="0"
-                max="40"
-                class="field__input"
-                formControlName="idadeAnos"
-                [class.field__input--invalid]="idadeErro()"
-                [attr.aria-invalid]="idadeErro() ? 'true' : null"
-                [attr.aria-describedby]="idadeErro() ? 'idade-erro' : null"
-              />
-              @if (idadeErro(); as erro) {
-                <p class="field__error" id="idade-erro" role="alert">{{ erro }}</p>
-              }
-            </div>
-
-            <div class="field">
-              <label class="field__label" for="porte">Porte</label>
-              <select id="porte" class="field__input" formControlName="porte">
-                @for (porte of portes; track porte.id) {
-                  <option [value]="porte.id">{{ porte.label }}</option>
-                }
-              </select>
             </div>
 
             <div class="field">
@@ -93,32 +102,145 @@
             </div>
           </div>
 
-          <div class="field">
-            <label class="field__label" for="bio">Sobre o pet</label>
-            <textarea
-              id="bio"
-              class="field__input"
-              formControlName="bio"
-              maxlength="200"
-              aria-describedby="bio-dica"
-            ></textarea>
-            <p class="field__hint" id="bio-dica">Até 200 caracteres.</p>
-          </div>
-
           <div class="perfil__acoes perfil__acoes--form">
-            <button type="button" class="btn btn--ghost btn--sm" (click)="cancelar()">
+            <button type="button" class="btn btn--ghost btn--sm" (click)="cancelarTutor()">
               Cancelar
             </button>
-            <button type="submit" class="btn btn--primary btn--sm" [disabled]="salvando()">
-              {{ salvando() ? 'Salvando…' : 'Salvar' }}
+            <button type="submit" class="btn btn--primary btn--sm" [disabled]="salvandoTutor()">
+              {{ salvandoTutor() ? 'Salvando…' : 'Salvar' }}
             </button>
           </div>
         </form>
       }
     </section>
 
+    <section class="card" aria-labelledby="pets-titulo">
+      <header class="card__header">
+        <h2 id="pets-titulo" class="card__title">
+          {{ perfil.pets.length === 1 ? 'Meu pet' : 'Meus pets' }}
+        </h2>
+        @if (editandoPet() !== 'novo') {
+          <button type="button" class="btn btn--secondary btn--sm" (click)="novoPet()">
+            Adicionar pet
+          </button>
+        }
+      </header>
+
+      <ul class="pets">
+        @for (pet of perfil.pets; track pet.id) {
+          <li class="pet">
+            <div class="foto">
+              <span
+                class="foto__circulo"
+                [class.foto__circulo--enviando]="enviandoFoto() === pet.id"
+              >
+                <app-avatar [foto]="pet.foto" [nome]="pet.nome" />
+              </span>
+              <div class="foto__acoes">
+                <button
+                  type="button"
+                  class="link-btn"
+                  [disabled]="enviandoFoto() === pet.id"
+                  (click)="escolherFoto(pet.id, seletorFoto)"
+                >
+                  {{
+                    enviandoFoto() === pet.id
+                      ? 'Enviando…'
+                      : pet.foto
+                        ? 'Trocar foto'
+                        : 'Adicionar foto'
+                  }}
+                  <span class="sr-only">de {{ pet.nome }}</span>
+                </button>
+                @if (pet.foto) {
+                  <button
+                    type="button"
+                    class="link-btn"
+                    [disabled]="enviandoFoto() === pet.id"
+                    (click)="removerFoto(pet.id)"
+                  >
+                    Remover foto <span class="sr-only">de {{ pet.nome }}</span>
+                  </button>
+                }
+              </div>
+            </div>
+
+            @if (editandoPet() === pet.id) {
+              <ng-container
+                [ngTemplateOutlet]="formularioPet"
+                [ngTemplateOutletContext]="{ titulo: 'Editar ' + pet.nome }"
+              />
+            } @else {
+              <div class="pet__info">
+                <h3 class="pet__nome">{{ pet.nome }}</h3>
+                <p class="pet__descricao">{{ descricaoPet(pet) }}</p>
+                @if (pet.bio) {
+                  <p class="pet__bio">{{ pet.bio }}</p>
+                }
+
+                @if (removendoPet() === pet.id) {
+                  <div class="confirmar" role="group" [attr.aria-label]="'Remover ' + pet.nome">
+                    <p>Remover {{ pet.nome }} do perfil? Os passeios já registrados continuam.</p>
+                    <div class="perfil__acoes">
+                      <button
+                        type="button"
+                        class="btn btn--ghost btn--sm"
+                        (click)="cancelarRemocao()"
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn--danger btn--sm"
+                        [disabled]="salvandoPet()"
+                        (click)="removerPet(pet.id)"
+                      >
+                        {{ salvandoPet() ? 'Removendo…' : 'Remover' }}
+                      </button>
+                    </div>
+                  </div>
+                } @else {
+                  <div class="perfil__acoes">
+                    <button
+                      type="button"
+                      class="btn btn--secondary btn--sm"
+                      (click)="editarPet(pet)"
+                    >
+                      Editar <span class="sr-only">{{ pet.nome }}</span>
+                    </button>
+                    <button
+                      type="button"
+                      class="btn btn--danger btn--sm"
+                      (click)="pedirRemocao(pet.id)"
+                    >
+                      Remover <span class="sr-only">{{ pet.nome }}</span>
+                    </button>
+                  </div>
+                }
+              </div>
+            }
+          </li>
+        } @empty {
+          @if (editandoPet() !== 'novo') {
+            <li class="vazio">
+              Nenhum pet cadastrado ainda. Adicione o primeiro para marcá-lo nos passeios.
+            </li>
+          }
+        }
+
+        @if (editandoPet() === 'novo') {
+          <li class="pet">
+            <ng-container
+              [ngTemplateOutlet]="formularioPet"
+              [ngTemplateOutletContext]="{ titulo: 'Novo pet' }"
+            />
+          </li>
+        }
+      </ul>
+    </section>
+
     <section class="stats" aria-labelledby="stats-titulo">
-      <h2 id="stats-titulo" class="sr-only">Números do {{ perfil.pet }}</h2>
+      <h2 id="stats-titulo" class="sr-only">Seus números</h2>
       <div class="stat">
         <span class="stat__label">Distância total</span>
         <strong class="stat__value">{{ formatarKm(kmTotal()) }} <small>km</small></strong>
@@ -177,4 +299,96 @@
       }
     </section>
   </div>
+
+  <ng-template #formularioPet let-titulo="titulo">
+    <form class="form" [formGroup]="formPet" (ngSubmit)="salvarPet()" novalidate>
+      <h3 class="pet__nome">{{ titulo }}</h3>
+
+      <div class="form__grid">
+        <div class="field">
+          <label class="field__label" for="pet-nome">Nome do pet</label>
+          <input
+            id="pet-nome"
+            class="field__input"
+            formControlName="nome"
+            maxlength="60"
+            [class.field__input--invalid]="nomePetErro()"
+            [attr.aria-invalid]="nomePetErro() ? 'true' : null"
+            [attr.aria-describedby]="nomePetErro() ? 'pet-nome-erro' : null"
+          />
+          @if (nomePetErro(); as erro) {
+            <p class="field__error" id="pet-nome-erro" role="alert">{{ erro }}</p>
+          }
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="pet-especie">Espécie</label>
+          <select id="pet-especie" class="field__input" formControlName="especie">
+            @for (especie of especies; track especie.id) {
+              <option [value]="especie.id">{{ especie.label }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="pet-raca">Raça</label>
+          <input
+            id="pet-raca"
+            class="field__input"
+            formControlName="raca"
+            maxlength="60"
+            placeholder="Vira-lata"
+          />
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="pet-idade">Idade (anos)</label>
+          <input
+            id="pet-idade"
+            type="number"
+            min="0"
+            max="40"
+            class="field__input"
+            formControlName="idadeAnos"
+            [class.field__input--invalid]="idadeErro()"
+            [attr.aria-invalid]="idadeErro() ? 'true' : null"
+            [attr.aria-describedby]="idadeErro() ? 'pet-idade-erro' : null"
+          />
+          @if (idadeErro(); as erro) {
+            <p class="field__error" id="pet-idade-erro" role="alert">{{ erro }}</p>
+          }
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="pet-porte">Porte</label>
+          <select id="pet-porte" class="field__input" formControlName="porte">
+            @for (porte of portes; track porte.id) {
+              <option [value]="porte.id">{{ porte.label }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="pet-bio">Sobre o pet</label>
+        <textarea
+          id="pet-bio"
+          class="field__input"
+          formControlName="bio"
+          maxlength="200"
+          aria-describedby="pet-bio-dica"
+        ></textarea>
+        <p class="field__hint" id="pet-bio-dica">Até 200 caracteres.</p>
+      </div>
+
+      <div class="perfil__acoes perfil__acoes--form">
+        <button type="button" class="btn btn--ghost btn--sm" (click)="cancelarPet()">
+          Cancelar
+        </button>
+        <button type="submit" class="btn btn--primary btn--sm" [disabled]="salvandoPet()">
+          {{ salvandoPet() ? 'Salvando…' : 'Salvar pet' }}
+        </button>
+      </div>
+    </form>
+  </ng-template>
 }

@@ -167,6 +167,19 @@ app-mapa {
   height: 22rem;
 }
 
+/* Fotos e o link de editar, abaixo do botão que destaca o passeio no mapa. */
+.passeio__extra {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  align-items: flex-end;
+  padding: 0 0.5rem 0.75rem;
+
+  app-fotos-passeio {
+    align-self: stretch;
+  }
+}
+
 .passeio {
   width: 100%;
   padding-inline: 0.5rem;

@@ -23,6 +23,7 @@ import { PasseiosService } from '../../../core/passeios.service';
 import { RotasService } from '../../../core/rotas.service';
 import { Avatar } from '../../../shared/avatar/avatar';
 import { Mapa, MarcadorMapa, TrajetoMapa } from '../../../shared/mapa/mapa';
+import { SeletorFotos } from '../../../shared/seletor-fotos/seletor-fotos';
 
 type Modo = 'desenho' | 'gps';
 type EstadoGps = 'parado' | 'gravando' | 'pausado' | 'encerrado';
@@ -47,7 +48,7 @@ function formatarCronometro(ms: number): string {
 
 @Component({
   selector: 'app-novo-passeio',
-  imports: [ReactiveFormsModule, RouterLink, Avatar, Mapa],
+  imports: [ReactiveFormsModule, RouterLink, Avatar, Mapa, SeletorFotos],
   templateUrl: './novo-passeio.html',
   styleUrl: './novo-passeio.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -98,6 +99,10 @@ export class NovoPasseio {
       return mantidos.length ? mantidos : ids;
     },
   });
+
+  /** Já reduzidas, em data URL: servem de pré-visualização e vão assim para a API. */
+  protected readonly fotos = signal<string[]>([]);
+  protected readonly preparandoFotos = signal(false);
 
   protected readonly tentouEnviar = signal(false);
   protected readonly enviando = signal(false);
@@ -329,6 +334,8 @@ export class NovoPasseio {
 
     if (this.estadoGps() === 'gravando') this.encerrar();
 
+    if (this.preparandoFotos()) return;
+
     if (this.pontos().length < 2 || this.form.invalid || this.faltaPet()) {
       this.form.markAllAsTouched();
       return;
@@ -364,6 +371,7 @@ export class NovoPasseio {
         petIds: this.pets()
           .map((p) => p.id)
           .filter((id) => this.petsEscolhidos().includes(id)),
+        fotos: this.fotos(),
       });
       await this.router.navigateByUrl('/');
     } catch (erro) {

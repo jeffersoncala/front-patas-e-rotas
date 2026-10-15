@@ -14,9 +14,10 @@ import { mensagemDeErro } from '../../core/api';
 import { AuthService } from '../../core/auth.service';
 import { formatarDuracao, formatarKm, tempoRelativo } from '../../core/formato';
 import { REDUZIR_IMAGEM, TIPOS_ACEITOS } from '../../core/imagem';
-import { ESPECIES, Especie, PORTES, Pet, Porte } from '../../core/models';
+import { ESPECIES, Especie, PORTES, Pet, Porte, nomesPets } from '../../core/models';
 import { PasseiosService } from '../../core/passeios.service';
 import { Avatar } from '../../shared/avatar/avatar';
+import { FotosPasseio } from '../../shared/fotos-passeio/fotos-passeio';
 import { Mapa, TrajetoMapa } from '../../shared/mapa/mapa';
 
 /** De quem é a foto sendo trocada: do tutor ou de um pet (pelo id). */
@@ -27,7 +28,7 @@ const naoVazio = Validators.pattern(/\S/);
 
 @Component({
   selector: 'app-meu-perfil',
-  imports: [ReactiveFormsModule, RouterLink, NgTemplateOutlet, Avatar, Mapa],
+  imports: [ReactiveFormsModule, RouterLink, NgTemplateOutlet, Avatar, FotosPasseio, Mapa],
   templateUrl: './meu-perfil.html',
   styleUrl: './meu-perfil.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -47,6 +48,7 @@ export class MeuPerfil {
   protected readonly especies = ESPECIES;
   protected readonly portes = PORTES;
   protected readonly tiposAceitos = TIPOS_ACEITOS;
+  protected readonly nomesPets = nomesPets;
 
   /** Passeio escolhido na lista fica em destaque no mapa. */
   protected readonly selecionado = signal<number | null>(null);

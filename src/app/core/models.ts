@@ -77,6 +77,8 @@ export interface Passeio {
   distanciaKm: number;
   duracaoMin: number;
   texto: string;
+  /** Caminhos das fotos na API (`/fotos/<id>`), na ordem; use `urlFoto` para exibir. */
+  fotos: string[];
   curtidas: number;
   curtido: boolean;
   meu: boolean;

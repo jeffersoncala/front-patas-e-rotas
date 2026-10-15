@@ -68,7 +68,9 @@ describe('MeuPerfil', () => {
   }
 
   async function enviarForm(fixture: Fixture) {
-    (fixture.nativeElement as HTMLElement).querySelector('form')!.dispatchEvent(new Event('submit'));
+    (fixture.nativeElement as HTMLElement)
+      .querySelector('form')!
+      .dispatchEvent(new Event('submit'));
     await fixture.whenStable();
   }
 
@@ -93,6 +95,17 @@ describe('MeuPerfil', () => {
       expect(el.querySelector('.pet__nome')?.textContent).toContain('Bolota');
       expect(el.querySelector('.pet__descricao')?.textContent).toContain('Cachorro · Vira-lata');
       expect(el.querySelectorAll('.passeio').length).toBe(2);
+    });
+
+    it('mostra as fotos dos meus passeios e leva para editar cada um', () => {
+      const el = criar().nativeElement as HTMLElement;
+      const fotos = el.querySelectorAll<HTMLImageElement>('.passeio__extra img');
+      expect(fotos).toHaveLength(1);
+      expect(fotos[0].getAttribute('src')).toMatch(/\/fotos\/exemplo-orla$/);
+      const links = [...el.querySelectorAll('.passeio__extra a.card__link')].map((a) =>
+        a.getAttribute('href'),
+      );
+      expect(links.sort()).toEqual(['/passeios/4/editar', '/passeios/5/editar']);
     });
 
     it('remove o único pet e mostra o perfil sem pets', async () => {

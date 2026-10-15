@@ -288,6 +288,15 @@
                   </span>
                   <span class="sr-only">, destacar no mapa</span>
                 </button>
+                <div class="passeio__extra">
+                  <app-fotos-passeio
+                    [fotos]="passeio.fotos"
+                    [autor]="nomesPets(passeio.pets) || 'você'"
+                  />
+                  <a class="card__link" [routerLink]="['/passeios', passeio.id, 'editar']">
+                    Editar<span class="sr-only"> passeio {{ passeio.rotaNome || 'livre' }}</span>
+                  </a>
+                </div>
               </li>
             }
           </ul>

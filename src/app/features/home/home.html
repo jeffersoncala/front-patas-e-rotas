@@ -87,6 +87,7 @@
               @if (passeio.texto) {
                 <p class="post__text">{{ passeio.texto }}</p>
               }
+              <app-fotos-passeio [fotos]="passeio.fotos" [autor]="pets || passeio.tutor" />
               <div class="post__footer">
                 @if (passeio.rotaId) {
                   <a class="tag" [routerLink]="['/rotas', passeio.rotaId]">
@@ -94,7 +95,8 @@
                   </a>
                 } @else {
                   <span class="tag">
-                    {{ passeio.rotaNome || 'Passeio livre' }} · {{ formatarKm(passeio.distanciaKm) }} km
+                    {{ passeio.rotaNome || 'Passeio livre' }} ·
+                    {{ formatarKm(passeio.distanciaKm) }} km
                   </span>
                 }
                 <button
@@ -105,12 +107,12 @@
                   (click)="alternarCurtida(passeio.id)"
                 >
                   <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path
-                      d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z"
-                    />
+                    <path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z" />
                   </svg>
                   {{ passeio.curtidas }}
-                  <span class="sr-only">curtidas, curtir passeio de {{ pets || passeio.tutor }}</span>
+                  <span class="sr-only"
+                    >curtidas, curtir passeio de {{ pets || passeio.tutor }}</span
+                  >
                 </button>
               </div>
             </div>
@@ -142,8 +144,8 @@
                   {{ encontro.titulo }}
                 </a>
                 <p class="item__meta">
-                  {{ encontro.local }} · {{ data.dia }} {{ data.mes }}, {{ formatarHora(encontro.data) }}
-                  · {{ encontro.confirmados }} pets
+                  {{ encontro.local }} · {{ data.dia }} {{ data.mes }},
+                  {{ formatarHora(encontro.data) }} · {{ encontro.confirmados }} pets
                 </p>
               </div>
               <button
@@ -179,7 +181,8 @@
               <div class="item__info">
                 <a class="item__title" [routerLink]="['/rotas', rota.id]">{{ rota.nome }}</a>
                 <p class="item__meta">
-                  {{ rota.bairro }} · {{ formatarKm(rota.distanciaKm) }} km · {{ rota.duracaoMin }} min
+                  {{ rota.bairro }} · {{ formatarKm(rota.distanciaKm) }} km ·
+                  {{ rota.duracaoMin }} min
                 </p>
               </div>
             </li>

@@ -1,0 +1,41 @@
+<fieldset class="field fotos">
+  <legend class="field__label">Fotos do passeio</legend>
+  <input
+    #seletor
+    type="file"
+    hidden
+    multiple
+    [accept]="tiposAceitos"
+    (change)="escolhidas(seletor)"
+  />
+  <div class="fotos__lista">
+    @for (foto of fotos(); track $index) {
+      <div class="foto">
+        <img [src]="src(foto)" [alt]="'Foto ' + ($index + 1) + ' do passeio'" />
+        <button
+          type="button"
+          class="foto__remover"
+          [attr.aria-label]="'Remover foto ' + ($index + 1)"
+          (click)="remover($index)"
+        >
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
+    }
+    @if (fotos().length < maxFotos) {
+      <button
+        type="button"
+        class="fotos__adicionar"
+        [disabled]="preparando()"
+        (click)="seletor.click()"
+      >
+        <span aria-hidden="true">+</span>
+        {{ preparando() ? 'Preparando...' : 'Adicionar fotos' }}
+      </button>
+    }
+  </div>
+  <span class="field__hint">Até {{ maxFotos }} fotos.</span>
+  @if (erro(); as mensagem) {
+    <span class="field__error" role="alert">{{ mensagem }}</span>
+  }
+</fieldset>

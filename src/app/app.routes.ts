@@ -67,6 +67,12 @@ export const routes: Routes = [
           import('./features/passeios/novo/novo-passeio').then((m) => m.NovoPasseio),
       },
       {
+        path: 'passeios/:id/editar',
+        title: 'Editar passeio · Patas & Rotas',
+        loadComponent: () =>
+          import('./features/passeios/editar/editar-passeio').then((m) => m.EditarPasseio),
+      },
+      {
         path: 'perfil',
         title: 'Perfil · Patas & Rotas',
         loadComponent: () => import('./features/perfil/meu-perfil').then((m) => m.MeuPerfil),

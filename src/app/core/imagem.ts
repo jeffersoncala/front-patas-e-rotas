@@ -2,6 +2,8 @@ import { InjectionToken } from '@angular/core';
 
 /** Lado maior da foto depois de reduzida, em pixels. Sobra para avatares em telas densas. */
 const LADO_MAXIMO = 512;
+/** Fotos de passeio aparecem grandes no feed; ainda cabem quatro por passeio no envio. */
+export const LADO_FOTO_PASSEIO = 1280;
 const QUALIDADE_JPEG = 0.85;
 
 export const TIPOS_ACEITOS = 'image/jpeg,image/png,image/webp';
@@ -35,7 +37,7 @@ export async function reduzirImagem(arquivo: Blob, lado = LADO_MAXIMO): Promise<
 }
 
 /** Para os testes trocarem a redução (o jsdom não tem canvas). */
-export const REDUZIR_IMAGEM = new InjectionToken<(arquivo: Blob) => Promise<string>>(
+export const REDUZIR_IMAGEM = new InjectionToken<(arquivo: Blob, lado?: number) => Promise<string>>(
   'REDUZIR_IMAGEM',
   { providedIn: 'root', factory: () => reduzirImagem },
 );

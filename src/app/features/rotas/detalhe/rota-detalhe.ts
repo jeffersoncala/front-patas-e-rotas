@@ -13,11 +13,12 @@ import { formatarDuracao, formatarKm, tempoRelativo } from '../../../core/format
 import { Passeio, nomesPets } from '../../../core/models';
 import { PasseiosService } from '../../../core/passeios.service';
 import { RotasService } from '../../../core/rotas.service';
+import { FotosPasseio } from '../../../shared/fotos-passeio/fotos-passeio';
 import { Mapa, MarcadorMapa, TrajetoMapa } from '../../../shared/mapa/mapa';
 
 @Component({
   selector: 'app-rota-detalhe',
-  imports: [RouterLink, Mapa],
+  imports: [RouterLink, FotosPasseio, Mapa],
   templateUrl: './rota-detalhe.html',
   styleUrl: './rota-detalhe.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

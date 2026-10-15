@@ -34,6 +34,14 @@ describe('RotaDetalhe', () => {
     expect(el.querySelector('.voltar')?.getAttribute('href')).toBe('/rotas');
   });
 
+  it('mostra as fotos dos passeios que têm', async () => {
+    const el = (await criar(1)).nativeElement as HTMLElement;
+    const fotos = el.querySelectorAll<HTMLImageElement>('app-fotos-passeio img');
+    expect(fotos).toHaveLength(1);
+    expect(fotos[0].getAttribute('src')).toMatch(/\/fotos\/exemplo-orla$/);
+    expect(fotos[0].alt).toBe('Foto 1 do passeio de Bolota');
+  });
+
   it('leva para registrar um passeio nessa rota', async () => {
     const fixture = await criar(2);
     const link = Array.from(

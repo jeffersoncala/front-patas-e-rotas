@@ -1,0 +1,72 @@
+<section class="page">
+  <a class="voltar" routerLink="/perfil"><span aria-hidden="true">←</span> Voltar para o perfil</a>
+
+  @if (passeio(); as passeio) {
+    <header class="page__header">
+      <div>
+        <h1 class="page__title">Editar passeio</h1>
+        <p class="page__subtitle">
+          {{ passeio.rotaNome || 'Passeio livre' }} · {{ tempoRelativo(passeio.data) }} ·
+          {{ formatarKm(passeio.distanciaKm) }} km
+        </p>
+      </div>
+    </header>
+
+    @if (!passeio.meu) {
+      <p class="alert" role="alert">Só quem registrou o passeio pode editá-lo.</p>
+    } @else {
+      <div class="passeio">
+        <app-mapa rotulo="Trajeto do passeio" [trajetos]="trajetos()" />
+
+        <form class="card painel" [formGroup]="form" (ngSubmit)="salvar()" novalidate>
+          <div class="field">
+            <label class="field__label" for="duracao">Duração (minutos)</label>
+            <input
+              id="duracao"
+              class="field__input"
+              type="number"
+              min="1"
+              inputmode="numeric"
+              formControlName="duracaoMin"
+              [class.field__input--invalid]="duracaoErro()"
+              [attr.aria-invalid]="!!duracaoErro()"
+              [attr.aria-describedby]="duracaoErro() ? 'duracao-erro' : null"
+            />
+            @if (duracaoErro(); as erro) {
+              <span id="duracao-erro" class="field__error" role="alert">{{ erro }}</span>
+            }
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="texto">Como foi o passeio?</label>
+            <textarea
+              id="texto"
+              class="field__input"
+              formControlName="texto"
+              maxlength="500"
+            ></textarea>
+          </div>
+
+          <app-seletor-fotos [(fotos)]="fotos" [(preparando)]="preparandoFotos" />
+
+          @if (erroGeral(); as erro) {
+            <p class="alert" role="alert">{{ erro }}</p>
+          }
+
+          <button
+            type="submit"
+            class="btn btn--primary"
+            [disabled]="enviando() || preparandoFotos()"
+          >
+            {{ enviando() ? 'Salvando...' : 'Salvar alterações' }}
+          </button>
+        </form>
+      </div>
+    }
+  } @else if (naoEncontrado()) {
+    <div class="card vazio" role="status">
+      <h1 class="page__title">Passeio não encontrado</h1>
+      <p>Ele pode ter sido apagado.</p>
+    </div>
+  }
+</section>

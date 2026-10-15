@@ -7,11 +7,12 @@ import { nomesPets } from '../../core/models';
 import { PasseiosService } from '../../core/passeios.service';
 import { RotasService } from '../../core/rotas.service';
 import { Avatar } from '../../shared/avatar/avatar';
+import { FotosPasseio } from '../../shared/fotos-passeio/fotos-passeio';
 import { Mapa, MarcadorMapa } from '../../shared/mapa/mapa';
 
 @Component({
   selector: 'app-home',
-  imports: [RouterLink, Avatar, Mapa],
+  imports: [RouterLink, Avatar, FotosPasseio, Mapa],
   templateUrl: './home.html',
   styleUrl: './home.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

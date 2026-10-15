@@ -1,10 +1,12 @@
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter, Router } from '@angular/router';
+import { LADO_FOTO_PASSEIO, REDUZIR_IMAGEM } from '../../../core/imagem';
 import { LatLng, Perfil } from '../../../core/models';
 import { PasseiosService } from '../../../core/passeios.service';
 import { RotasService } from '../../../core/rotas.service';
 import { Mapa } from '../../../shared/mapa/mapa';
+import { MAX_FOTOS } from '../../../shared/seletor-fotos/seletor-fotos';
 import { NovoPasseio } from './novo-passeio';
 import { PERFIL_EXEMPLO, entrarComoExemplo, provideApiFalsa } from '../../../testes/api-falsa';
 
@@ -13,11 +15,19 @@ const B: LatLng = [-22.9463, -43.1814];
 const C: LatLng = [-22.9488, -43.1799];
 
 describe('NovoPasseio', () => {
+  let reduzir: ReturnType<typeof vi.fn<(arquivo: Blob, lado?: number) => Promise<string>>>;
+
   beforeEach(async () => {
     entrarComoExemplo();
+    // O jsdom não tem canvas: a "redução" devolve um data URL com o nome do arquivo.
+    reduzir = vi.fn(async (arquivo: Blob) => `data:image/jpeg;base64,${(arquivo as File).name}`);
     await TestBed.configureTestingModule({
       imports: [NovoPasseio],
-      providers: [provideRouter([]), provideApiFalsa()],
+      providers: [
+        provideRouter([]),
+        provideApiFalsa(),
+        { provide: REDUZIR_IMAGEM, useValue: reduzir },
+      ],
     }).compileComponents();
   });
 
@@ -67,6 +77,23 @@ describe('NovoPasseio', () => {
     const el = fixture.nativeElement.querySelector(`#${id}`) as HTMLInputElement;
     el.value = valor;
     el.dispatchEvent(new Event('input'));
+  }
+
+  async function escolherFotos(fixture: Fixture, ...nomes: string[]) {
+    const seletor = (fixture.nativeElement as HTMLElement).querySelector<HTMLInputElement>(
+      'input[type="file"]',
+    )!;
+    const arquivos = nomes.map((nome) => new File(['x'], nome, { type: 'image/jpeg' }));
+    Object.defineProperty(seletor, 'files', { value: arquivos, configurable: true });
+    seletor.dispatchEvent(new Event('change'));
+    await vi.waitFor(() => expect(fixture.componentInstance['preparandoFotos']()).toBe(false));
+    await fixture.whenStable();
+  }
+
+  function previas(fixture: Fixture): string[] {
+    return Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLImageElement>('.foto img'),
+    ).map((img) => img.getAttribute('src')!);
   }
 
   function distancia(fixture: Fixture): string {
@@ -147,9 +174,62 @@ describe('NovoPasseio', () => {
       rotaId: 2,
       rotaNome: rota.nome,
       petIds: [1],
+      fotos: [],
     });
     // Com um pet só, não há o que escolher.
     expect(fixture.nativeElement.querySelector('.pets')).toBeNull();
+  });
+
+  it('envia as fotos escolhidas, já reduzidas, e permite remover antes', async () => {
+    const fixture = await criar(2);
+    const registrar = vi.spyOn(TestBed.inject(PasseiosService), 'registrar');
+    const navegar = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
+
+    await escolherFotos(fixture, 'a.jpg', 'b.jpg', 'c.jpg');
+    expect(reduzir).toHaveBeenCalledWith(expect.any(File), LADO_FOTO_PASSEIO);
+    expect(previas(fixture)).toEqual([
+      'data:image/jpeg;base64,a.jpg',
+      'data:image/jpeg;base64,b.jpg',
+      'data:image/jpeg;base64,c.jpg',
+    ]);
+
+    (
+      fixture.nativeElement.querySelector('[aria-label="Remover foto 2"]') as HTMLButtonElement
+    ).click();
+    await fixture.whenStable();
+    expect(previas(fixture)).toEqual([
+      'data:image/jpeg;base64,a.jpg',
+      'data:image/jpeg;base64,c.jpg',
+    ]);
+
+    enviar(fixture);
+    await vi.waitFor(() => expect(navegar).toHaveBeenCalledWith('/'));
+    expect(registrar).toHaveBeenCalledWith(
+      expect.objectContaining({
+        fotos: ['data:image/jpeg;base64,a.jpg', 'data:image/jpeg;base64,c.jpg'],
+      }),
+    );
+    const passeio = await registrar.mock.results[0].value;
+    expect(passeio.fotos).toHaveLength(2);
+  });
+
+  it(`aceita até ${MAX_FOTOS} fotos e avisa quando o arquivo não é imagem`, async () => {
+    const fixture = await criar();
+    const el = fixture.nativeElement as HTMLElement;
+
+    await escolherFotos(fixture, '1.jpg', '2.jpg', '3.jpg', '4.jpg', '5.jpg');
+    expect(previas(fixture)).toHaveLength(MAX_FOTOS);
+    expect(el.querySelector('.fotos .field__error')?.textContent).toContain('ficaram as primeiras');
+    expect(el.querySelector('.fotos__adicionar')).toBeNull();
+
+    (el.querySelector('[aria-label="Remover foto 1"]') as HTMLButtonElement).click();
+    await fixture.whenStable();
+    reduzir.mockRejectedValueOnce(new Error('Escolha um arquivo de imagem.'));
+    await escolherFotos(fixture, 'texto.txt');
+    expect(previas(fixture)).toHaveLength(MAX_FOTOS - 1);
+    expect(el.querySelector('.fotos .field__error')?.textContent).toContain(
+      'Escolha um arquivo de imagem.',
+    );
   });
 
   it('com mais de um pet, pergunta quem foi passear', async () => {
@@ -281,7 +361,11 @@ describe('NovoPasseio', () => {
       await fixture.whenStable();
 
       expect(mapa(fixture).trajetos()[0].pontos).toEqual([A, C]);
-      expect(mapa(fixture).marcadores().some((m) => m.tipo === 'eu')).toBe(true);
+      expect(
+        mapa(fixture)
+          .marcadores()
+          .some((m) => m.tipo === 'eu'),
+      ).toBe(true);
       expect(mapa(fixture).centro()).toEqual(C);
       expect(fixture.nativeElement.querySelector('.cronometro').textContent).toContain('02:00');
 

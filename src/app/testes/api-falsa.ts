@@ -45,7 +45,12 @@ export const PERFIL_EXEMPLO: Perfil = {
 export function entrarComoExemplo(perfil: Perfil = PERFIL_EXEMPLO): void {
   localStorage.setItem(
     'pataserotas.sessao',
-    JSON.stringify({ accessToken: 'token-teste', refreshToken: 'refresh-teste', lembrar: true, perfil }),
+    JSON.stringify({
+      accessToken: 'token-teste',
+      refreshToken: 'refresh-teste',
+      lembrar: true,
+      perfil,
+    }),
   );
 }
 
@@ -209,6 +214,7 @@ function responder(banco: Banco, req: HttpRequest<unknown>): Resposta {
         rotaId?: number;
         rotaNome?: string;
         petIds?: number[];
+        fotos?: string[];
       };
       const pets = perfil.pets.filter((p) => !dados.petIds || dados.petIds.includes(p.id));
       const rotaDoPasseio = banco.rotas.find((r) => r.id === dados.rotaId);
@@ -217,6 +223,7 @@ function responder(banco: Banco, req: HttpRequest<unknown>): Resposta {
         duracaoMin: dados.duracaoMin,
         texto: dados.texto,
         id: proximoId(banco.passeios),
+        fotos: (dados.fotos ?? []).map((_, i) => `/fotos/passeio-${Date.now()}-${i}`),
         pets: pets.map(({ id, nome, foto }) => ({ id, nome, foto })),
         tutor: perfil.tutor,
         fotoTutor: perfil.foto,
@@ -231,6 +238,20 @@ function responder(banco: Banco, req: HttpRequest<unknown>): Resposta {
       banco.passeios.push(novo);
       return ok(novo, 201);
     }
+    case 'GET /passeios/:id':
+      return achar(banco.passeios, id, (p) => ok(p));
+    case 'PATCH /passeios/:id':
+      return achar(banco.passeios, id, (p) => {
+        const { fotos, ...campos } = corpo as Partial<Passeio>;
+        Object.assign(p, campos);
+        if (fotos) {
+          // Como a API: as que ficam vêm pelo caminho, as novas em data URL.
+          p.fotos = fotos.map((f, i) =>
+            f.startsWith('data:') ? `/fotos/passeio-${Date.now()}-${i}` : f,
+          );
+        }
+        return ok(p);
+      });
     case 'PUT /passeios/:id/curtida':
     case 'DELETE /passeios/:id/curtida':
       return achar(banco.passeios, id, (p) => {

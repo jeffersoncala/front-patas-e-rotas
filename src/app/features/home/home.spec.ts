@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { PasseiosService } from '../../core/passeios.service';
 import { Home } from './home';
 import { PERFIL_EXEMPLO, entrarComoExemplo, provideApiFalsa } from '../../testes/api-falsa';
 
@@ -48,6 +49,34 @@ describe('Home', () => {
     const primeiro = el.querySelector('.post')!;
     expect(primeiro.querySelector('.post__meta')?.textContent).toContain('Mel com Ana');
     expect(primeiro.querySelector('.post__avatar')?.textContent?.trim()).toBe('M');
+  });
+
+  it('mostra as fotos do passeio no feed, só quando ele tem fotos', async () => {
+    const fixture = criar();
+    const el = fixture.nativeElement as HTMLElement;
+    await fixture.whenStable();
+    expect(el.querySelector('.post:first-child .fotos')).toBeNull();
+
+    await TestBed.inject(PasseiosService).registrar({
+      pontos: [
+        [-22.9437, -43.1822],
+        [-22.9463, -43.1814],
+      ],
+      duracaoMin: 20,
+      texto: '',
+      rotaId: null,
+      rotaNome: 'Passeio livre',
+      petIds: [],
+      fotos: ['data:image/jpeg;base64,a', 'data:image/jpeg;base64,b'],
+    });
+    await fixture.whenStable();
+
+    const fotos = el.querySelectorAll<HTMLImageElement>('.post:first-child .fotos img');
+    expect(fotos).toHaveLength(2);
+    expect(fotos[0].getAttribute('src')).toMatch(/\/fotos\/passeio-/);
+    expect(fotos[0].alt).toBe('Foto 1 do passeio de Bolota');
+    // Dos de exemplo, só um tem foto.
+    expect(el.querySelectorAll('.post .fotos')).toHaveLength(2);
   });
 
   it('confirma presença em um encontro e atualiza o resumo', async () => {

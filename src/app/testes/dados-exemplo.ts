@@ -254,16 +254,18 @@ export const ENCONTROS_EXEMPLO: Encontro[] = [
 const ID_PET: Record<string, number> = { Bolota: 1, Mel: 11, Thor: 12, Pipoca: 13 };
 
 function passeio(
-  base: Omit<Passeio, 'distanciaKm' | 'pontos' | 'rotaNome' | 'pets' | 'fotoTutor'> & {
+  base: Omit<Passeio, 'distanciaKm' | 'pontos' | 'rotaNome' | 'pets' | 'fotoTutor' | 'fotos'> & {
     rota: Rota;
     pet: string;
+    fotos?: string[];
   },
 ): Passeio {
-  const { rota, pet, ...resto } = base;
+  const { rota, pet, fotos = [], ...resto } = base;
   return {
     ...resto,
     pets: [{ id: ID_PET[pet], nome: pet, foto: null }],
     fotoTutor: null,
+    fotos,
     rotaNome: rota.nome,
     pontos: rota.pontos,
     distanciaKm: distanciaTrajeto(rota.pontos),
@@ -335,5 +337,6 @@ export const PASSEIOS_EXEMPLO: Passeio[] = [
     curtidas: 21,
     curtido: false,
     meu: true,
+    fotos: ['/fotos/exemplo-orla'],
   }),
 ];

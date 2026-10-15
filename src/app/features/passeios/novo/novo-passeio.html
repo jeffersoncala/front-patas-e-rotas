@@ -172,6 +172,8 @@
         ></textarea>
       </div>
 
+      <app-seletor-fotos [(fotos)]="fotos" [(preparando)]="preparandoFotos" />
+
       @if (!rotaBase()) {
         <label class="check">
           <input type="checkbox" formControlName="salvarRota" />
@@ -214,7 +216,7 @@
         <p class="alert" role="alert">{{ erro }}</p>
       }
 
-      <button type="submit" class="btn btn--primary" [disabled]="enviando()">
+      <button type="submit" class="btn btn--primary" [disabled]="enviando() || preparandoFotos()">
         {{ enviando() ? 'Registrando...' : 'Registrar passeio' }}
       </button>
     </form>

@@ -67,6 +67,10 @@
                 @if (passeio.texto) {
                   <p class="texto">{{ passeio.texto }}</p>
                 }
+                <app-fotos-passeio
+                  [fotos]="passeio.fotos"
+                  [autor]="nomesPets(passeio.pets) || passeio.tutor"
+                />
               </div>
             </li>
           }

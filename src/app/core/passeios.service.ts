@@ -19,6 +19,13 @@ export type NovoPasseio = Pick<
 > & {
   /** Pets do tutor que foram no passeio; vazio deixa a API usar todos. */
   petIds: number[];
+  /** Fotos já reduzidas, em data URL (como as de `reduzirImagem`). */
+  fotos: string[];
+};
+
+export type AlteracaoPasseio = Partial<Pick<Passeio, 'duracaoMin' | 'texto'>> & {
+  /** Lista final, na ordem: caminhos (`/fotos/<id>`) das que ficam e data URLs das novas. */
+  fotos?: string[];
 };
 
 @Injectable({ providedIn: 'root' })
@@ -58,25 +65,41 @@ export class PasseiosService {
     return this.http.get<Passeio[]>(`${API_URL}/rotas/${rotaId}/passeios`);
   }
 
+  buscar(id: number): Observable<Passeio> {
+    return this.http.get<Passeio>(`${API_URL}/passeios/${id}`);
+  }
+
+  async alterar(id: number, alteracao: AlteracaoPasseio): Promise<Passeio> {
+    const atualizado = await firstValueFrom(
+      this.http.patch<Passeio>(`${API_URL}/passeios/${id}`, alteracao),
+    );
+    const trocar = (lista: Passeio[]) => lista.map((p) => (p.id === id ? atualizado : p));
+    this._feed.update(trocar);
+    this._meus.update(trocar);
+    return atualizado;
+  }
+
   alternarCurtida(id: number): void {
     const passeio = [...this._feed(), ...this._meus()].find((p) => p.id === id);
     if (!passeio) return;
     const url = `${API_URL}/passeios/${id}/curtida`;
-    (passeio.curtido ? this.http.delete<Passeio>(url) : this.http.put<Passeio>(url, null)).subscribe(
-      (atualizado) => {
-        const trocar = (lista: Passeio[]) => lista.map((p) => (p.id === id ? atualizado : p));
-        this._feed.update(trocar);
-        this._meus.update(trocar);
-      },
-    );
+    (passeio.curtido
+      ? this.http.delete<Passeio>(url)
+      : this.http.put<Passeio>(url, null)
+    ).subscribe((atualizado) => {
+      const trocar = (lista: Passeio[]) => lista.map((p) => (p.id === id ? atualizado : p));
+      this._feed.update(trocar);
+      this._meus.update(trocar);
+    });
   }
 
-  async registrar({ rotaId, rotaNome, petIds, ...dados }: NovoPasseio): Promise<Passeio> {
+  async registrar({ rotaId, rotaNome, petIds, fotos, ...dados }: NovoPasseio): Promise<Passeio> {
     // A API pega o nome da rota pelo id; `rotaNome` só vale para passeio livre.
     const corpo = {
       ...dados,
       ...(rotaId === null ? { rotaNome } : { rotaId }),
       ...(petIds.length > 0 && { petIds }),
+      ...(fotos.length > 0 && { fotos }),
     };
     const passeio = await firstValueFrom(this.http.post<Passeio>(`${API_URL}/passeios`, corpo));
     this._feed.update((lista) => [passeio, ...lista]);

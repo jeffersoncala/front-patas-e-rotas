@@ -1,0 +1,23 @@
+.passeio {
+  display: grid;
+  gap: 1.5rem;
+  align-items: start;
+
+  @media (min-width: 60rem) {
+    grid-template-columns: minmax(0, 1fr) 22rem;
+  }
+
+  app-mapa {
+    height: clamp(16rem, 45vh, 28rem);
+  }
+}
+
+.painel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.vazio {
+  text-align: center;
+}

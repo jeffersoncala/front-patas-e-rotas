@@ -8,18 +8,7 @@
     </a>
 
     <nav class="nav" aria-label="Principal">
-      @for (link of links; track link.rota) {
-        <a
-          class="nav__link"
-          [class.nav__link--cta]="link.rota === '/passeios/novo'"
-          [routerLink]="link.rota"
-          routerLinkActive="nav__link--ativo"
-          [routerLinkActiveOptions]="{ exact: link.exato }"
-          ariaCurrentWhenActive="page"
-        >
-          {{ link.label }}
-        </a>
-      }
+      <ng-container [ngTemplateOutlet]="linksNav" />
     </nav>
 
     <a
@@ -35,3 +24,23 @@
 <main id="conteudo" tabindex="-1">
   <router-outlet />
 </main>
+
+<!-- No celular a navegação fica numa barra fixa no rodapé, fora do header. -->
+<nav class="tabbar" aria-label="Principal">
+  <ng-container [ngTemplateOutlet]="linksNav" />
+</nav>
+
+<ng-template #linksNav>
+  @for (link of links; track link.rota) {
+    <a
+      class="nav__link"
+      [class.nav__link--cta]="link.rota === '/passeios/novo'"
+      [routerLink]="link.rota"
+      routerLinkActive="nav__link--ativo"
+      [routerLinkActiveOptions]="{ exact: link.exato }"
+      ariaCurrentWhenActive="page"
+    >
+      {{ link.label }}
+    </a>
+  }
+</ng-template>

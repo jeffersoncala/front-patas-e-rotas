@@ -101,6 +101,10 @@ main:focus {
   }
 }
 
+.tabbar {
+  display: none;
+}
+
 .avatar {
   display: grid;
   flex-shrink: 0;
@@ -125,13 +129,23 @@ main:focus {
     padding-bottom: 4.5rem;
   }
 
+  .brand__name {
+    font-size: 0.95rem;
+  }
+
   .avatar {
     margin-left: auto;
   }
 
   .nav {
+    display: none;
+  }
+
+  .tabbar {
     position: fixed;
     inset: auto 0 0;
+    z-index: 1000; /* acima dos controles do Leaflet */
+    display: flex;
     justify-content: space-around;
     padding: 0.5rem 0.5rem calc(0.5rem + env(safe-area-inset-bottom));
     margin: 0;

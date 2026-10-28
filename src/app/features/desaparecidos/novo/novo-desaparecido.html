@@ -1,0 +1,199 @@
+<section class="page">
+  <a class="voltar" routerLink="/desaparecidos"
+    ><span aria-hidden="true">←</span> Pets desaparecidos</a
+  >
+
+  <header>
+    <h1 class="page__title">Cadastrar pet desaparecido</h1>
+    <p class="page__subtitle">
+      Quanto mais detalhes, mais fácil para a vizinhança reconhecer e avisar você.
+    </p>
+  </header>
+
+  <form class="novo" [formGroup]="form" (ngSubmit)="cadastrar()" novalidate>
+    <div class="card novo__campos">
+      <div class="novo__foto">
+        <span class="novo__foto-preview" aria-hidden="true">
+          @if (foto(); as src) {
+            <img [src]="src" alt="" />
+          } @else {
+            <span>?</span>
+          }
+        </span>
+        <div class="novo__foto-acoes">
+          <span class="field__label">Foto <span class="novo__opcional">(recomendada)</span></span>
+          <input
+            #seletor
+            type="file"
+            hidden
+            [accept]="tiposAceitos"
+            (change)="escolherFoto(seletor)"
+          />
+          <div class="novo__foto-botoes">
+            <button
+              type="button"
+              class="btn btn--secondary btn--sm"
+              [disabled]="preparandoFoto()"
+              (click)="seletor.click()"
+            >
+              {{ preparandoFoto() ? 'Preparando…' : foto() ? 'Trocar foto' : 'Escolher foto' }}
+            </button>
+            @if (foto()) {
+              <button type="button" class="btn btn--ghost btn--sm" (click)="removerFoto()">
+                Remover
+              </button>
+            }
+          </div>
+          @if (erroFoto(); as erro) {
+            <p class="field__error" role="alert">{{ erro }}</p>
+          }
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="nome">Nome do pet</label>
+        <input
+          id="nome"
+          class="field__input"
+          formControlName="nome"
+          placeholder="Ex.: Mel"
+          [class.field__input--invalid]="nomeErro()"
+          [attr.aria-invalid]="nomeErro() ? 'true' : null"
+          [attr.aria-describedby]="nomeErro() ? 'nome-erro' : null"
+        />
+        @if (nomeErro(); as erro) {
+          <p class="field__error" id="nome-erro" role="alert">{{ erro }}</p>
+        }
+      </div>
+
+      <div class="novo__linha">
+        <div class="field">
+          <label class="field__label" for="especie">Espécie</label>
+          <select id="especie" class="field__input" formControlName="especie">
+            @for (opcao of especies; track opcao.id) {
+              <option [value]="opcao.id">{{ opcao.label }}</option>
+            }
+          </select>
+        </div>
+        <div class="field">
+          <label class="field__label" for="porte">Porte</label>
+          <select id="porte" class="field__input" formControlName="porte">
+            @for (opcao of portes; track opcao.id) {
+              <option [value]="opcao.id">{{ opcao.label }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="raca"
+          >Raça <span class="novo__opcional">(opcional)</span></label
+        >
+        <input
+          id="raca"
+          class="field__input"
+          formControlName="raca"
+          placeholder="Ex.: Vira-lata caramelo"
+        />
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="descricao"
+          >Sinais e detalhes <span class="novo__opcional">(opcional)</span></label
+        >
+        <textarea
+          id="descricao"
+          class="field__input"
+          formControlName="descricao"
+          placeholder="Cor, coleira, manchas, se é medroso…"
+        ></textarea>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="contato">Contato</label>
+        <input
+          id="contato"
+          class="field__input"
+          formControlName="contato"
+          inputmode="tel"
+          placeholder="Ex.: (21) 99999-0000"
+          [class.field__input--invalid]="contatoErro()"
+          [attr.aria-invalid]="contatoErro() ? 'true' : null"
+          [attr.aria-describedby]="contatoErro() ? 'contato-erro' : 'contato-dica'"
+        />
+        @if (contatoErro(); as erro) {
+          <p class="field__error" id="contato-erro" role="alert">{{ erro }}</p>
+        } @else {
+          <p class="field__hint" id="contato-dica">Aparece para quem estiver por perto.</p>
+        }
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="vistoEm">Visto pela última vez em</label>
+        <input
+          id="vistoEm"
+          type="datetime-local"
+          class="field__input"
+          formControlName="vistoEm"
+          [max]="dataMaxima"
+          [class.field__input--invalid]="vistoEmErro()"
+          [attr.aria-invalid]="vistoEmErro() ? 'true' : null"
+          [attr.aria-describedby]="vistoEmErro() ? 'vistoEm-erro' : null"
+        />
+        @if (vistoEmErro(); as erro) {
+          <p class="field__error" id="vistoEm-erro" role="alert">{{ erro }}</p>
+        }
+      </div>
+    </div>
+
+    <fieldset
+      class="card novo__mapa"
+      [attr.aria-describedby]="posicaoErro() ? 'posicao-erro' : 'posicao-dica'"
+    >
+      <legend class="card__title">Onde foi visto</legend>
+      <p class="field__hint" id="posicao-dica">
+        Toque no mapa no último lugar onde o pet foi visto.
+        @if (posicao()) {
+          <strong>Ponto marcado.</strong>
+        }
+      </p>
+
+      <app-mapa
+        rotulo="Mapa para marcar onde o pet foi visto"
+        [centro]="centro()"
+        [zoom]="15"
+        [enquadrar]="false"
+        [marcadores]="marcadores()"
+        [class.novo__mapa--invalido]="posicaoErro()"
+        (cliqueMapa)="escolherPosicao($event)"
+      />
+
+      @if (posicaoErro(); as erro) {
+        <p class="field__error" id="posicao-erro" role="alert">{{ erro }}</p>
+      }
+      @if (erroLocalizacao(); as erro) {
+        <p class="alert" role="alert">{{ erro }}</p>
+      }
+
+      <button
+        type="button"
+        class="btn btn--secondary btn--sm"
+        [disabled]="localizando()"
+        (click)="usarMinhaLocalizacao()"
+      >
+        {{ localizando() ? 'Localizando…' : 'Usar minha localização' }}
+      </button>
+    </fieldset>
+
+    @if (erroGeral(); as erro) {
+      <p class="alert" role="alert">{{ erro }}</p>
+    }
+
+    <div class="novo__acoes">
+      <a class="btn btn--ghost" routerLink="/desaparecidos">Cancelar</a>
+      <button type="submit" class="btn btn--primary" [disabled]="enviando() || preparandoFoto()">
+        {{ enviando() ? 'Cadastrando…' : 'Cadastrar' }}
+      </button>
+    </div>
+  </form>
+</section>

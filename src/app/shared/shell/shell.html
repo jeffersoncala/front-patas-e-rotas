@@ -40,7 +40,12 @@
       [routerLinkActiveOptions]="{ exact: link.exato }"
       ariaCurrentWhenActive="page"
     >
-      {{ link.label }}
+      @if (link.curto) {
+        <span class="nav__longo">{{ link.label }}</span>
+        <span class="nav__curto">{{ link.curto }}</span>
+      } @else {
+        {{ link.label }}
+      }
     </a>
   }
 </ng-template>

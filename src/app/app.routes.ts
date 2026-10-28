@@ -61,6 +61,22 @@ export const routes: Routes = [
           import('./features/rotas/detalhe/rota-detalhe').then((m) => m.RotaDetalhe),
       },
       {
+        path: 'desaparecidos',
+        title: 'Desaparecidos · Patas & Rotas',
+        loadComponent: () =>
+          import('./features/desaparecidos/lista/desaparecidos-lista').then(
+            (m) => m.DesaparecidosLista,
+          ),
+      },
+      {
+        path: 'desaparecidos/novo',
+        title: 'Cadastrar desaparecido · Patas & Rotas',
+        loadComponent: () =>
+          import('./features/desaparecidos/novo/novo-desaparecido').then(
+            (m) => m.NovoDesaparecido,
+          ),
+      },
+      {
         path: 'passeios/novo',
         title: 'Registrar passeio · Patas & Rotas',
         loadComponent: () =>

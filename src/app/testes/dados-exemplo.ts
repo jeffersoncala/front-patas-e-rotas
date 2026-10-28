@@ -1,5 +1,5 @@
 import { distanciaTrajeto } from '../core/geo';
-import { Encontro, LatLng, Passeio, Rota } from '../core/models';
+import { Desaparecido, Encontro, LatLng, Passeio, Rota } from '../core/models';
 
 // Dados servidos pela API falsa dos testes (`api-falsa.ts`), no mesmo formato da API real.
 
@@ -339,4 +339,58 @@ export const PASSEIOS_EXEMPLO: Passeio[] = [
     meu: true,
     fotos: ['/fotos/exemplo-orla'],
   }),
+];
+
+const HORA = 60 * MINUTO;
+
+/** Pets desaparecidos em volta do centro padrão do mapa (Botafogo), a distâncias variadas. */
+export const DESAPARECIDOS_EXEMPLO: Desaparecido[] = [
+  {
+    id: 1,
+    nome: 'Pipoca',
+    especie: 'cachorro',
+    raca: 'Vira-lata caramelo',
+    porte: 'medio',
+    descricao: 'Coleira vermelha, muito dócil.',
+    contato: '(21) 98888-1234',
+    foto: null,
+    // ~0,5 km do centro padrão.
+    posicao: [-22.9410, -43.1795],
+    vistoEm: aPartirDeAgora(-3 * HORA),
+    encontrado: false,
+    tutor: 'Carla',
+    meu: false,
+  },
+  {
+    id: 2,
+    nome: 'Bolota',
+    especie: 'cachorro',
+    raca: '',
+    porte: 'pequeno',
+    descricao: '',
+    contato: 'Falar com o porteiro do prédio 120',
+    foto: '/fotos/exemplo-bolota',
+    // ~4 km do centro padrão.
+    posicao: [-22.9725, -43.1795],
+    vistoEm: aPartirDeAgora(-DIA),
+    encontrado: false,
+    tutor: 'Jeff',
+    meu: true,
+  },
+  {
+    id: 3,
+    nome: 'Frajola',
+    especie: 'gato',
+    raca: 'SRD',
+    porte: 'pequeno',
+    descricao: 'Preto e branco, assustado.',
+    contato: '21 97777-0000',
+    foto: null,
+    // ~20 km do centro padrão.
+    posicao: [-22.7565, -43.1795],
+    vistoEm: aPartirDeAgora(-2 * DIA),
+    encontrado: false,
+    tutor: 'Duda',
+    meu: false,
+  },
 ];

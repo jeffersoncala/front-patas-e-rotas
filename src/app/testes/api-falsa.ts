@@ -10,17 +10,24 @@ import { EnvironmentProviders } from '@angular/core';
 import { of, throwError } from 'rxjs';
 import { API_URL } from '../core/api';
 import { authInterceptor } from '../core/auth.interceptor';
-import { distanciaTrajeto } from '../core/geo';
+import { distanciaEntre, distanciaTrajeto } from '../core/geo';
 import {
   DadosPet,
+  Desaparecido,
   Encontro,
+  LatLng,
   Passeio,
   Perfil,
   ResumoPerfil,
   Rota,
   juntarNomes,
 } from '../core/models';
-import { ENCONTROS_EXEMPLO, PASSEIOS_EXEMPLO, ROTAS_EXEMPLO } from './dados-exemplo';
+import {
+  DESAPARECIDOS_EXEMPLO,
+  ENCONTROS_EXEMPLO,
+  PASSEIOS_EXEMPLO,
+  ROTAS_EXEMPLO,
+} from './dados-exemplo';
 
 export const PERFIL_EXEMPLO: Perfil = {
   tutor: 'Jeff',
@@ -59,6 +66,7 @@ interface Banco {
   rotas: Rota[];
   encontros: Encontro[];
   passeios: Passeio[];
+  desaparecidos: Desaparecido[];
 }
 
 type Resposta = { status: number; body: unknown };
@@ -79,6 +87,7 @@ export function provideApiFalsa(perfil: Perfil = PERFIL_EXEMPLO): EnvironmentPro
     rotas: ROTAS_EXEMPLO,
     encontros: ENCONTROS_EXEMPLO,
     passeios: PASSEIOS_EXEMPLO,
+    desaparecidos: DESAPARECIDOS_EXEMPLO,
   });
   const apiFalsa: HttpInterceptorFn = (req) => {
     // Cópia, como numa resposta de rede: quem recebe não enxerga mudanças posteriores no banco.
@@ -261,6 +270,39 @@ function responder(banco: Banco, req: HttpRequest<unknown>): Resposta {
           p.curtido = curtido;
         }
         return ok(p);
+      });
+
+    case 'GET /desaparecidos': {
+      const centro: LatLng = [Number(req.params.get('lat')), Number(req.params.get('lng'))];
+      const raioKm = Number(req.params.get('raioKm') ?? 5);
+      const proximos = banco.desaparecidos
+        .filter((d) => !d.encontrado)
+        .map((d) => ({ ...d, distanciaKm: distanciaEntre(centro, d.posicao) }))
+        .filter((d) => d.distanciaKm <= raioKm)
+        .sort((a, b) => a.distanciaKm - b.distanciaKm);
+      return ok(proximos);
+    }
+    case 'POST /desaparecidos': {
+      const { foto, ...dados } = corpo as Omit<
+        Desaparecido,
+        'id' | 'foto' | 'encontrado' | 'tutor' | 'meu'
+      > & { foto?: string };
+      const novo: Desaparecido = {
+        ...dados,
+        id: proximoId(banco.desaparecidos),
+        foto: foto ? `/fotos/desaparecido-${Date.now()}` : null,
+        encontrado: false,
+        tutor: perfil.tutor,
+        meu: true,
+      };
+      banco.desaparecidos.push(novo);
+      return ok(novo, 201);
+    }
+    case 'PUT /desaparecidos/:id/encontrado':
+      return achar(banco.desaparecidos, id, (d) => {
+        if (!d.meu) return { status: 403, body: { status: 403, mensagem: 'Proibido' } };
+        d.encontrado = true;
+        return ok(d);
       });
 
     default:

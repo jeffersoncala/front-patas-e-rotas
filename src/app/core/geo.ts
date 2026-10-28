@@ -32,3 +32,22 @@ export function distanciaTrajeto(pontos: readonly LatLng[]): number {
 export function linkComoChegar([lat, lng]: LatLng): string {
   return `https://www.openstreetmap.org/directions?engine=fossgis_osrm_foot&route=%3B${lat}%2C${lng}`;
 }
+
+/** Por que não deu para saber onde o tutor está. */
+export type FalhaLocalizacao = 'indisponivel' | 'negada' | 'falhou';
+
+/** Posição atual pelo GPS do navegador; rejeita com o motivo da falha. */
+export function localizar(): Promise<LatLng> {
+  return new Promise((resolve, reject) => {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      reject('indisponivel' satisfies FalhaLocalizacao);
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => resolve([coords.latitude, coords.longitude]),
+      (erro) =>
+        reject((erro.code === erro.PERMISSION_DENIED ? 'negada' : 'falhou') satisfies FalhaLocalizacao),
+      { enableHighAccuracy: true, timeout: 10_000 },
+    );
+  });
+}

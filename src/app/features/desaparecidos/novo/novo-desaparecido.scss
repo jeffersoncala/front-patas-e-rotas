@@ -1,0 +1,111 @@
+.novo {
+  display: grid;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.novo__campos,
+.novo__mapa {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  min-width: 0;
+  margin: 0;
+}
+
+.novo__linha {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.novo__foto {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.novo__foto-preview {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 5rem;
+  height: 5rem;
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--ink-500);
+  overflow: hidden;
+  background: var(--surface-muted);
+  border: 1.5px dashed var(--ink-300);
+  border-radius: 50%;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.novo__foto-acoes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.novo__foto-botoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.novo__mapa {
+  legend {
+    float: left; // mantém a legenda dentro do card
+    width: 100%;
+    padding: 0;
+  }
+
+  app-mapa {
+    height: 22rem;
+    cursor: crosshair;
+  }
+
+  .btn {
+    align-self: flex-start;
+  }
+}
+
+.novo__mapa--invalido {
+  outline: 2px solid var(--danger-600);
+  outline-offset: 2px;
+}
+
+.novo__opcional {
+  font-weight: 400;
+  color: var(--ink-500);
+}
+
+.novo__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: flex-end;
+
+  .btn {
+    flex: 0 1 12rem;
+  }
+}
+
+@media (min-width: 60rem) {
+  .novo {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  }
+
+  .novo__mapa app-mapa {
+    height: 26rem;
+  }
+
+  .novo__acoes {
+    grid-column: 1 / -1;
+  }
+}

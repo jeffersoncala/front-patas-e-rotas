@@ -1,0 +1,113 @@
+.busca {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.busca__raio {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+  align-items: center;
+}
+
+.busca__rotulo {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--ink-700);
+}
+
+.busca__centro {
+  font-size: 0.875rem;
+  color: var(--ink-500);
+
+  .link-btn {
+    margin-left: 0.35rem;
+  }
+}
+
+.desaparecidos {
+  display: grid;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.desaparecidos__mapa {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  order: -1;
+
+  app-mapa {
+    height: 18rem;
+    cursor: crosshair;
+  }
+}
+
+.desaparecidos__lista {
+  padding-block: 0.25rem;
+}
+
+.desaparecido {
+  align-items: flex-start;
+  padding-inline: 0.75rem;
+  margin-inline: -0.75rem;
+  border-radius: var(--radius-sm);
+  transition: background 0.15s ease;
+
+  &--ativo {
+    background: var(--accent-100);
+  }
+}
+
+.desaparecido__foto {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #fff;
+  overflow: hidden;
+  background: var(--brand-500);
+  border-radius: 50%;
+}
+
+.desaparecido__distancia {
+  color: var(--brand-700);
+}
+
+.desaparecido__descricao {
+  margin-top: 0.35rem;
+  font-size: 0.875rem;
+  color: var(--ink-700);
+  overflow-wrap: anywhere;
+}
+
+.desaparecido__contato {
+  margin-top: 0.35rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+@media (min-width: 60rem) {
+  .desaparecidos {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  }
+
+  .desaparecidos__mapa {
+    position: sticky;
+    top: 5.5rem;
+    order: 0;
+
+    app-mapa {
+      height: calc(100dvh - 10rem);
+      min-height: 26rem;
+      max-height: 40rem;
+    }
+  }
+}

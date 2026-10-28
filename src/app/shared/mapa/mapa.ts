@@ -31,6 +31,12 @@ export interface TrajetoMapa {
   destaque?: boolean;
 }
 
+/** Área circular, ex. o raio de uma busca. */
+export interface CirculoMapa {
+  centro: LatLng;
+  raioKm: number;
+}
+
 interface Contexto {
   L: typeof Leaflet;
   mapa: Leaflet.Map;
@@ -62,6 +68,8 @@ export class Mapa {
   readonly zoom = input(14);
   readonly marcadores = input<MarcadorMapa[]>([]);
   readonly trajetos = input<TrajetoMapa[]>([]);
+  /** Desenhado por baixo de tudo e incluído no enquadramento. */
+  readonly circulo = input<CirculoMapa | null>(null);
   /** Enquadra automaticamente marcadores e trajetos sempre que mudarem. */
   readonly enquadrar = input(true);
 
@@ -116,7 +124,7 @@ export class Mapa {
 
     effect(() => {
       const ctx = this.contexto();
-      if (ctx) this.desenhar(ctx, this.marcadores(), this.trajetos());
+      if (ctx) this.desenhar(ctx, this.marcadores(), this.trajetos(), this.circulo());
     });
 
     // Recentraliza quando o centro muda e não há nada para enquadrar.
@@ -130,16 +138,27 @@ export class Mapa {
   }
 
   private vazio(): boolean {
-    return this.marcadores().length === 0 && this.trajetos().length === 0;
+    return this.marcadores().length === 0 && this.trajetos().length === 0 && !this.circulo();
   }
 
   private desenhar(
     { L, mapa, camadas }: Contexto,
     marcadores: MarcadorMapa[],
     trajetos: TrajetoMapa[],
+    circulo: CirculoMapa | null,
   ): void {
     camadas.clearLayers();
     const limites: LatLng[] = [];
+
+    if (circulo) {
+      const area = L.circle(circulo.centro, {
+        radius: circulo.raioKm * 1000,
+        className: 'mapa-circulo',
+        interactive: false,
+      }).addTo(camadas);
+      const bordas = area.getBounds();
+      limites.push([bordas.getSouth(), bordas.getWest()], [bordas.getNorth(), bordas.getEast()]);
+    }
 
     // Trajetos em destaque por último, para ficarem por cima dos outros.
     for (const trajeto of [...trajetos].sort((a, b) => Number(a.destaque) - Number(b.destaque))) {

@@ -105,6 +105,10 @@ main:focus {
   display: none;
 }
 
+.nav__curto {
+  display: none;
+}
+
 .avatar {
   display: grid;
   flex-shrink: 0;
@@ -153,9 +157,18 @@ main:focus {
     border-top: 1px solid var(--ink-100);
   }
 
+  .nav__longo {
+    display: none;
+  }
+
+  .nav__curto {
+    display: inline;
+  }
+
+  /* Seis links precisam caber numa tela de 360px. */
   .nav__link {
-    padding: 0.5rem 0.6rem;
-    font-size: 0.85rem;
+    padding: 0.5rem 0.4rem;
+    font-size: 0.78rem;
 
     &--cta {
       color: #fff;

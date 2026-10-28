@@ -43,6 +43,11 @@ export function tempoRelativo(iso: string, agora = Date.now()): string {
   return dias === 1 ? 'ontem' : `há ${dias} dias`;
 }
 
+/** "350 m" abaixo de 1 km, "2,4 km" a partir daí. */
+export function formatarDistancia(km: number): string {
+  return km < 1 ? `${Math.round(km * 1000)} m` : `${formatarKm(km)} km`;
+}
+
 export function formatarDuracao(minutos: number): string {
   if (minutos < 60) return `${minutos} min`;
   const h = Math.floor(minutos / 60);

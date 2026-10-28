@@ -1,0 +1,136 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <h1 class="page__title">Desaparecidos</h1>
+      <p class="page__subtitle">
+        Pets sumidos perto de você. Viu algum? Fale com quem está procurando.
+      </p>
+    </div>
+    <a class="btn btn--primary" routerLink="/desaparecidos/novo">Cadastrar desaparecido</a>
+  </header>
+
+  <div class="busca">
+    <div class="busca__raio">
+      <span class="busca__rotulo" id="raio-rotulo">Raio de busca</span>
+      <div class="tabs" role="group" aria-labelledby="raio-rotulo">
+        @for (raio of raios; track raio) {
+          <button
+            type="button"
+            class="tabs__item"
+            [attr.aria-pressed]="raioKm() === raio"
+            (click)="escolherRaio(raio)"
+          >
+            {{ raio }} km
+          </button>
+        }
+      </div>
+    </div>
+
+    <p class="busca__centro">
+      @switch (origem()) {
+        @case ('gps') {
+          Buscando em volta de você.
+        }
+        @case ('mapa') {
+          Buscando em volta do ponto escolhido no mapa.
+        }
+        @default {
+          @if (centro()) {
+            Buscando em volta do centro padrão.
+          }
+        }
+      }
+      @if (origem() !== 'gps') {
+        <button
+          type="button"
+          class="link-btn"
+          [disabled]="localizando()"
+          (click)="usarMinhaLocalizacao()"
+        >
+          {{ localizando() ? 'Localizando…' : 'Usar minha localização' }}
+        </button>
+      }
+    </p>
+  </div>
+
+  @if (avisoLocalizacao(); as aviso) {
+    <p class="alert" role="status">{{ aviso }}</p>
+  }
+  @if (erro(); as mensagem) {
+    <p class="alert" role="alert">{{ mensagem }}</p>
+  }
+
+  <div class="desaparecidos">
+    <section
+      class="card desaparecidos__lista"
+      aria-labelledby="lista-titulo"
+      [attr.aria-busy]="carregando()"
+    >
+      <h2 id="lista-titulo" class="sr-only">Pets desaparecidos num raio de {{ raioKm() }} km</h2>
+
+      @if (desaparecidos().length) {
+        <ul class="list">
+          @for (pet of desaparecidos(); track pet.id) {
+            <li
+              class="item desaparecido"
+              [id]="'desaparecido-' + pet.id"
+              [class.desaparecido--ativo]="selecionado() === pet.id"
+              (mouseenter)="selecionar(pet.id)"
+              (focusin)="selecionar(pet.id)"
+            >
+              <span class="desaparecido__foto"
+                ><app-avatar [foto]="pet.foto" [nome]="pet.nome"
+              /></span>
+              <div class="item__info">
+                <p class="item__title">{{ pet.nome }}</p>
+                <p class="item__meta">{{ pet.detalhes }}</p>
+                <p class="item__meta">
+                  <strong class="desaparecido__distancia">a {{ pet.distancia }}</strong> · visto
+                  {{ pet.visto }}
+                </p>
+                @if (pet.descricao) {
+                  <p class="desaparecido__descricao">{{ pet.descricao }}</p>
+                }
+                <p class="desaparecido__contato">
+                  Contato de {{ pet.tutor }}:
+                  @if (pet.telefone; as tel) {
+                    <a [href]="tel.tel">{{ pet.contato }}</a>
+                    · <a [href]="tel.whatsapp" target="_blank" rel="noopener">WhatsApp</a>
+                  } @else {
+                    {{ pet.contato }}
+                  }
+                </p>
+              </div>
+              @if (pet.meu) {
+                <button type="button" class="chip" (click)="marcarEncontrado(pet)">
+                  Encontrado <span class="sr-only">{{ pet.nome }}</span>
+                </button>
+              }
+            </li>
+          }
+        </ul>
+      } @else if (carregando()) {
+        <p class="vazio">{{ centro() ? 'Buscando pets…' : 'Descobrindo onde você está…' }}</p>
+      } @else {
+        <p class="vazio">
+          Nenhum pet desaparecido num raio de {{ raioKm() }} km. Que bom!
+          @if (raioKm() < raios[raios.length - 1]) {
+            Aumente o raio para procurar mais longe.
+          }
+        </p>
+      }
+    </section>
+
+    <div class="desaparecidos__mapa">
+      <app-mapa
+        rotulo="Mapa dos pets desaparecidos. Toque para buscar em volta de outro ponto"
+        [centro]="centro() ?? centroPadrao"
+        [marcadores]="marcadores()"
+        [circulo]="circulo()"
+        (cliqueMapa)="buscarAqui($event)"
+        (marcadorClicado)="aoClicarMarcador($event)"
+      />
+      <p class="field__hint">Toque no mapa para buscar em volta de outro ponto.</p>
+    </div>
+  </div>
+</section>

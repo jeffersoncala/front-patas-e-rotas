@@ -84,6 +84,33 @@ export interface Passeio {
   meu: boolean;
 }
 
+export interface Desaparecido {
+  id: number;
+  nome: string;
+  especie: Especie;
+  raca: string;
+  porte: Porte;
+  descricao: string;
+  /** Telefone, WhatsApp ou outro jeito de falar com quem cadastrou. */
+  contato: string;
+  /** Caminho da foto na API (`/fotos/<id>`); use `urlFoto` para exibir. */
+  foto: string | null;
+  /** Onde o pet foi visto pela última vez. */
+  posicao: LatLng;
+  /** Data e hora em ISO 8601. */
+  vistoEm: string;
+  encontrado: boolean;
+  /** Quem cadastrou. */
+  tutor: string;
+  /** Se quem está logado cadastrou. */
+  meu: boolean;
+}
+
+/** Item da busca por raio, com a distância até o centro da busca. */
+export interface DesaparecidoProximo extends Desaparecido {
+  distanciaKm: number;
+}
+
 /** Números da home e do perfil, vindos de `/perfil/resumo`. */
 export interface ResumoPerfil {
   kmSemana: number;

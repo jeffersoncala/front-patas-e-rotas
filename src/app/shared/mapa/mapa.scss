@@ -93,3 +93,11 @@
     background: var(--surface);
   }
 }
+
+.mapa-circulo {
+  fill: var(--brand-500);
+  fill-opacity: 0.08;
+  stroke: var(--brand-600);
+  stroke-opacity: 0.7;
+  stroke-dasharray: 6 6;
+}

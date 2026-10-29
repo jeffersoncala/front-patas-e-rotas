@@ -62,7 +62,7 @@
               <p class="pedido__mensagem">“{{ p.mensagem }}”</p>
             }
 
-            @if (p.status === 'pendente' || p.status === 'aceita') {
+            @if (p.status === 'pendente' || p.status === 'aceita' || p.status === 'em_andamento') {
               <p class="pedido__contato">
                 {{ p.papel === 'cliente' ? 'Contato do prestador' : 'Telefone do cliente' }}:
                 @if (p.telefone; as tel) {
@@ -74,8 +74,17 @@
               </p>
             }
 
-            @if (p.acoes.length) {
+            @if (p.acoes.length || p.aoVivo) {
               <div class="pedido__acoes">
+                @if (p.aoVivo; as rotulo) {
+                  <a
+                    class="btn btn--sm"
+                    [class.btn--primary]="p.status !== 'concluida'"
+                    [class.btn--secondary]="p.status === 'concluida'"
+                    [routerLink]="['/servicos/pedidos', p.id, 'ao-vivo']"
+                    >{{ rotulo }}</a
+                  >
+                }
                 @for (acao of p.acoes; track acao.status) {
                   <button
                     type="button"

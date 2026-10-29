@@ -12,6 +12,7 @@ import { API_URL } from '../core/api';
 import { authInterceptor } from '../core/auth.interceptor';
 import { distanciaEntre, distanciaTrajeto } from '../core/geo';
 import {
+  Acompanhamento,
   Avaliacao,
   Contratacao,
   DadosPet,
@@ -34,6 +35,7 @@ import {
   PASSEIOS_EXEMPLO,
   PRESTADORES_EXEMPLO,
   ROTAS_EXEMPLO,
+  TRAJETOS_EXEMPLO,
 } from './dados-exemplo';
 
 export const PERFIL_EXEMPLO: Perfil = {
@@ -77,6 +79,7 @@ interface Banco {
   prestadores: Prestador[];
   avaliacoes: Record<number, Avaliacao[]>;
   contratacoes: Contratacao[];
+  trajetos: Record<number, { pontos: LatLng[]; posicaoEm: string | null }>;
 }
 
 type Resposta = { status: number; body: unknown };
@@ -101,6 +104,7 @@ export function provideApiFalsa(perfil: Perfil = PERFIL_EXEMPLO): EnvironmentPro
     prestadores: PRESTADORES_EXEMPLO,
     avaliacoes: AVALIACOES_EXEMPLO,
     contratacoes: CONTRATACOES_EXEMPLO,
+    trajetos: TRAJETOS_EXEMPLO,
   });
   const apiFalsa: HttpInterceptorFn = (req) => {
     // Cópia, como numa resposta de rede: quem recebe não enxerga mudanças posteriores no banco.
@@ -427,6 +431,8 @@ function responder(banco: Banco, req: HttpRequest<unknown>): Resposta {
         contato: dados.contato,
         mensagem: dados.mensagem,
         criadoEm: new Date().toISOString(),
+        iniciadoEm: null,
+        finalizadoEm: null,
         papel: 'cliente',
         cliente: { nome: perfil.tutor, foto: perfil.foto },
         prestador: {
@@ -444,10 +450,40 @@ function responder(banco: Banco, req: HttpRequest<unknown>): Resposta {
       banco.contratacoes.push(nova);
       return ok(nova, 201);
     }
+    case 'GET /contratacoes/:id':
+      return achar(banco.contratacoes, id, (c) => ok(c));
     case 'PUT /contratacoes/:id/status':
       return achar(banco.contratacoes, id, (c) => {
-        c.status = (corpo as Pick<Contratacao, 'status'>).status;
+        const { status } = corpo as Pick<Contratacao, 'status'>;
+        if (status === 'em_andamento') c.iniciadoEm = new Date().toISOString();
+        if (c.status === 'em_andamento') c.finalizadoEm = new Date().toISOString();
+        c.status = status;
         return ok(c);
+      });
+    case 'POST /contratacoes/:id/posicoes':
+      return achar(banco.contratacoes, id, (c) => {
+        if (c.status !== 'em_andamento') {
+          return { status: 409, body: { status: 409, mensagem: 'Não está em andamento' } };
+        }
+        const trajeto = (banco.trajetos[id] ??= { pontos: [], posicaoEm: null });
+        trajeto.pontos.push(...(corpo as { pontos: LatLng[] }).pontos);
+        trajeto.posicaoEm = new Date().toISOString();
+        return ok(null, 204);
+      });
+    case 'GET /contratacoes/:id/acompanhamento':
+      return achar(banco.contratacoes, id, (c) => {
+        const { pontos, posicaoEm } = banco.trajetos[id] ?? { pontos: [], posicaoEm: null };
+        const fim = c.finalizadoEm ? Date.parse(c.finalizadoEm) : Date.now();
+        return ok({
+          status: c.status,
+          iniciadoEm: c.iniciadoEm,
+          finalizadoEm: c.finalizadoEm,
+          posicaoEm,
+          duracaoMin: c.iniciadoEm ? Math.round((fim - Date.parse(c.iniciadoEm)) / 60_000) : 0,
+          distanciaKm: distanciaTrajeto(pontos),
+          totalPontos: pontos.length,
+          pontos: pontos.slice(Number(req.params.get('desde') ?? 0)),
+        } satisfies Acompanhamento);
       });
     case 'PUT /contratacoes/:id/avaliacao':
       return achar(banco.contratacoes, id, (c) => {

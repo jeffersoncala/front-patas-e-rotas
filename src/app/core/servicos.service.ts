@@ -3,6 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { API_URL } from './api';
 import {
+  Acompanhamento,
   Avaliacao,
   Contratacao,
   LatLng,
@@ -105,6 +106,24 @@ export class ServicosService {
   avaliar(id: number, nota: number, comentario: string): Promise<Contratacao> {
     return firstValueFrom(
       this.http.put<Contratacao>(`${this.contratacoes}/${id}/avaliacao`, { nota, comentario }),
+    );
+  }
+
+  /** Um pedido só (o cliente e o prestador enxergam). */
+  pedido(id: number): Promise<Contratacao> {
+    return firstValueFrom(this.http.get<Contratacao>(`${this.contratacoes}/${id}`));
+  }
+
+  /** O passeador envia os pontos do GPS juntados desde o último envio. */
+  enviarPosicoes(id: number, pontos: LatLng[]): Promise<void> {
+    return firstValueFrom(this.http.post<void>(`${this.contratacoes}/${id}/posicoes`, { pontos }));
+  }
+
+  /** Estado do passeio e os pontos a partir de `desde` (os que quem pergunta ainda não tem). */
+  acompanhamento(id: number, desde = 0): Promise<Acompanhamento> {
+    const params = new HttpParams().set('desde', desde);
+    return firstValueFrom(
+      this.http.get<Acompanhamento>(`${this.contratacoes}/${id}/acompanhamento`, { params }),
     );
   }
 }

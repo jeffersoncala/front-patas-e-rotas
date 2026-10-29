@@ -86,6 +86,12 @@ export const routes: Routes = [
         loadComponent: () => import('./features/servicos/pedidos/pedidos').then((m) => m.Pedidos),
       },
       {
+        path: 'servicos/pedidos/:id/ao-vivo',
+        title: 'Passeio ao vivo · Patas & Rotas',
+        loadComponent: () =>
+          import('./features/servicos/ao-vivo/passeio-ao-vivo').then((m) => m.PasseioAoVivo),
+      },
+      {
         path: 'servicos/meus',
         title: 'Meus serviços · Patas & Rotas',
         loadComponent: () =>

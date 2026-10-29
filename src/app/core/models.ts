@@ -195,7 +195,9 @@ export interface Avaliacao {
   fotoCliente: string | null;
 }
 
-export type StatusContratacao = 'pendente' | 'aceita' | 'recusada' | 'cancelada' | 'concluida';
+/** `em_andamento` só existe no passeio: do passeador pegar o pet até devolver. */
+export type StatusContratacao =
+  'pendente' | 'aceita' | 'em_andamento' | 'recusada' | 'cancelada' | 'concluida';
 
 /** Pedido de um tutor (cliente) a um prestador. */
 export interface Contratacao {
@@ -209,12 +211,30 @@ export interface Contratacao {
   contato: string;
   mensagem: string;
   criadoEm: string;
+  /** Passeio: quando o passeador pegou o pet. */
+  iniciadoEm: string | null;
+  /** Passeio: quando o passeador devolveu o pet. */
+  finalizadoEm: string | null;
   /** Se quem está logado fez (`cliente`) ou recebeu (`prestador`) o pedido. */
   papel: 'cliente' | 'prestador';
   cliente: { nome: string; foto: string | null };
   prestador: Pick<Prestador, 'id' | 'tipo' | 'nome' | 'contato'> & { foto: string | null };
   pets: (PetDoPasseio & Pick<Pet, 'especie' | 'porte'>)[];
   avaliacao: Pick<Avaliacao, 'nota' | 'comentario'> | null;
+}
+
+/** Estado do passeio contratado, consultado de tempos em tempos para acompanhar ao vivo. */
+export interface Acompanhamento {
+  status: StatusContratacao;
+  iniciadoEm: string | null;
+  finalizadoEm: string | null;
+  /** Quando chegou o último ponto do GPS do passeador. */
+  posicaoEm: string | null;
+  duracaoMin: number;
+  distanciaKm: number;
+  /** Mande como `desde` na próxima consulta para receber só os pontos novos. */
+  totalPontos: number;
+  pontos: LatLng[];
 }
 
 export const ESPECIES: readonly { id: Especie; label: string }[] = [
@@ -256,6 +276,7 @@ export const TIPOS_SERVICO: readonly { id: TipoServico; label: string; plural: s
 export const STATUS_CONTRATACAO: Record<StatusContratacao, string> = {
   pendente: 'Aguardando resposta',
   aceita: 'Aceito',
+  em_andamento: 'Passeio em andamento',
   recusada: 'Recusado',
   cancelada: 'Cancelado',
   concluida: 'Concluído',

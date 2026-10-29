@@ -1,0 +1,130 @@
+<section class="page">
+  <a
+    class="voltar"
+    routerLink="/servicos/pedidos"
+    [queryParams]="{ papel: souPasseador() ? 'prestador' : 'cliente' }"
+    ><span aria-hidden="true">←</span> Meus pedidos</a
+  >
+
+  @if (pedido(); as p) {
+    <header class="ao-vivo__topo">
+      <div>
+        <h1 class="page__title">Passeio de {{ nomesPets() }}</h1>
+        @if (outro(); as o) {
+          <p class="page__subtitle">
+            {{ souPasseador() ? 'Tutor' : 'Passeador' }}: {{ o.nome }} ·
+            @if (o.telefone; as tel) {
+              <a [href]="tel.tel">{{ o.contato }}</a>
+              · <a [href]="tel.whatsapp" target="_blank" rel="noopener">WhatsApp</a>
+            } @else {
+              {{ o.contato }}
+            }
+          </p>
+        }
+      </div>
+      @if (status() === 'em_andamento') {
+        <span class="ao-vivo__selo"
+          ><span class="ao-vivo__ponto" aria-hidden="true"></span> Ao vivo</span
+        >
+      }
+    </header>
+
+    <!-- O que está acontecendo, anunciado ao leitor de tela quando muda. -->
+    <p class="ao-vivo__estado" role="status">
+      @switch (status()) {
+        @case ('aceita') {
+          @if (souPasseador()) {
+            Quando pegar {{ nomesPets() }}, toque em "Iniciar passeio" para o tutor acompanhar.
+          } @else {
+            O passeio ainda não começou. Esta tela atualiza sozinha quando {{ outro()?.nome }} pegar
+            {{ nomesPets() }}.
+          }
+        }
+        @case ('em_andamento') {
+          Passeio em andamento desde {{ inicioHora() }}.
+        }
+        @case ('concluida') {
+          Passeio concluído: {{ distancia() }} km em {{ duracao() }}.
+        }
+        @default {
+          Este pedido não tem passeio para acompanhar.
+        }
+      }
+    </p>
+
+    @if (status() === 'em_andamento' || status() === 'concluida') {
+      <dl class="ao-vivo__numeros">
+        <div class="stat">
+          <dt class="stat__label">Distância</dt>
+          <dd class="stat__value">{{ distancia() }} <small>km</small></dd>
+        </div>
+        <div class="stat">
+          <dt class="stat__label">Duração</dt>
+          <dd class="stat__value">{{ duracao() }}</dd>
+        </div>
+        @if (sinal(); as s) {
+          <div class="stat">
+            <dt class="stat__label">Última posição</dt>
+            <dd class="stat__value" [class.ao-vivo__atrasado]="s.atrasado">há {{ s.texto }}</dd>
+          </div>
+        }
+      </dl>
+    }
+
+    @if (sinal()?.atrasado) {
+      <p class="alert" role="alert">
+        Sem sinal do passeador há {{ sinal()!.texto }}. Pode ser só falta de internet; se preocupar,
+        ligue para {{ outro()?.nome }}.
+      </p>
+    }
+    @if (aviso(); as mensagem) {
+      <p class="alert" role="status">{{ mensagem }}</p>
+    }
+    @if (erro(); as mensagem) {
+      <p class="alert" role="alert">{{ mensagem }}</p>
+    }
+
+    <app-mapa
+      class="ao-vivo__mapa"
+      [rotulo]="'Trajeto do passeio de ' + nomesPets()"
+      [centro]="centro()"
+      [zoom]="16"
+      [trajetos]="trajetos()"
+      [marcadores]="marcadores()"
+    />
+
+    @if (souPasseador()) {
+      @if (status() === 'aceita') {
+        <button
+          type="button"
+          class="btn btn--primary ao-vivo__acao"
+          [disabled]="ocupado()"
+          (click)="iniciar()"
+        >
+          {{ ocupado() ? 'Iniciando…' : 'Peguei ' + nomesPets() + ': iniciar passeio' }}
+        </button>
+      } @else if (status() === 'em_andamento') {
+        <p class="field__hint">
+          Deixe esta tela aberta durante o passeio: com ela fechada ou o celular bloqueado, o
+          navegador para de enviar a localização.
+        </p>
+        <button
+          type="button"
+          class="btn btn--primary ao-vivo__acao"
+          [disabled]="ocupado()"
+          (click)="encerrar()"
+        >
+          {{ ocupado() ? 'Encerrando…' : 'Devolvi ' + nomesPets() + ': encerrar passeio' }}
+        </button>
+      }
+    } @else if (status() === 'concluida' && !p.avaliacao) {
+      <a class="btn btn--secondary ao-vivo__acao" routerLink="/servicos/pedidos">
+        Avaliar o passeio
+      </a>
+    }
+  } @else if (naoEncontrado()) {
+    <p class="vazio">Esse passeio não existe ou não é seu.</p>
+  } @else {
+    <p class="vazio">Carregando…</p>
+  }
+</section>

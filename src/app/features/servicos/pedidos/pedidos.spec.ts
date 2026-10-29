@@ -84,7 +84,7 @@ describe('Pedidos', () => {
     const mudarStatus = vi.spyOn(TestBed.inject(ServicosService), 'mudarStatus');
     const [recebido] = pedidos(fixture);
 
-    expect(pedidos(fixture)).toHaveLength(1);
+    expect(pedidos(fixture)).toHaveLength(2);
     expect(recebido.querySelector('.item__title')?.textContent).toContain('Bia');
     expect(recebido.querySelector('.pedido__contato')?.textContent).toContain('(21) 96666-0000');
     expect(botao(recebido, 'Recusar')).toBeDefined();
@@ -95,19 +95,33 @@ describe('Pedidos', () => {
       expect(pedidos(fixture)[0].querySelector('.pedido__status')?.textContent).toContain('Aceito');
     });
     expect(mudarStatus).toHaveBeenCalledWith(3, 'aceita');
-    // O serviço ainda não começou: só dá para cancelar, e a tela explica.
-    expect(botao(pedidos(fixture)[0], 'Concluir')).toBeUndefined();
-    expect(pedidos(fixture)[0].textContent).toContain('depois que o serviço começar');
+    // Passeio não se conclui por aqui: começa e termina na tela ao vivo.
+    const aceito = pedidos(fixture)[0];
+    expect(botao(aceito, 'Concluir')).toBeUndefined();
+    expect(aceito.querySelector('a.btn')?.textContent?.trim()).toBe('Iniciar passeio');
+    expect(aceito.querySelector('a.btn')?.getAttribute('href')).toBe('/servicos/pedidos/3/ao-vivo');
+  });
+
+  it('leva o tutor para acompanhar o passeio em andamento e para ver o trajeto depois', async () => {
+    const fixture = await criar();
+    const [concluido, , andando] = pedidos(fixture);
+
+    expect(andando.querySelector('.pedido__status')?.textContent).toContain('em andamento');
+    expect(andando.querySelector('a.btn')?.textContent?.trim()).toBe('Acompanhar ao vivo');
+    expect(andando.querySelector('.pedido__contato')).not.toBeNull();
+    // Durante o passeio o pet está com o passeador: ninguém cancela.
+    expect(botao(andando, 'Cancelar pedido')).toBeUndefined();
+    expect(concluido.querySelector('a.btn')?.textContent?.trim()).toBe('Ver trajeto');
   });
 
   it('troca de aba entre os pedidos feitos e os recebidos', async () => {
     const fixture = await criar();
-    expect(pedidos(fixture)).toHaveLength(2);
+    expect(pedidos(fixture)).toHaveLength(3);
 
     botao(fixture.nativeElement, 'Que recebi')!.click();
     await vi.waitFor(async () => {
       await fixture.whenStable();
-      expect(pedidos(fixture)).toHaveLength(1);
+      expect(pedidos(fixture)).toHaveLength(2);
     });
   });
 });

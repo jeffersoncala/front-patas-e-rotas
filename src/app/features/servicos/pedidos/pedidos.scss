@@ -51,6 +51,7 @@
   }
 
   &[data-status='aceita'],
+  &[data-status='em_andamento'],
   &[data-status='concluida'] {
     color: var(--accent-600);
     background: var(--accent-100);

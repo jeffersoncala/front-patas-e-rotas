@@ -80,7 +80,12 @@ export class Pedidos {
         telefone: linksTelefone(contato),
         acoes: this.acoes(c),
         podeAvaliar: c.papel === 'cliente' && c.status === 'concluida',
-        aguardandoInicio: c.papel === 'prestador' && c.status === 'aceita' && !this.comecou(c),
+        aguardandoInicio:
+          c.papel === 'prestador' &&
+          c.status === 'aceita' &&
+          !this.ehPasseio(c) &&
+          !this.comecou(c),
+        aoVivo: this.linkAoVivo(c),
       };
     }),
   );
@@ -132,8 +137,10 @@ export class Pedidos {
         ];
       }
       if (c.status === 'aceita') {
+        // O passeio começa e termina na tela ao vivo, não aqui.
+        const podeConcluir = !this.ehPasseio(c) && this.comecou(c);
         return [
-          ...(this.comecou(c) ? [{ status: 'concluida', label: 'Concluir' } as Acao] : []),
+          ...(podeConcluir ? [{ status: 'concluida', label: 'Concluir' } as Acao] : []),
           { status: 'cancelada', label: 'Cancelar', perigo: true },
         ];
       }
@@ -142,6 +149,21 @@ export class Pedidos {
     return c.status === 'pendente' || c.status === 'aceita'
       ? [{ status: 'cancelada', label: 'Cancelar pedido', perigo: true }]
       : [];
+  }
+
+  /** Atalho para a tela do passeio ao vivo, quando faz sentido. */
+  private linkAoVivo(c: Contratacao): string | null {
+    if (!this.ehPasseio(c)) return null;
+    if (c.status === 'aceita')
+      return c.papel === 'prestador' ? 'Iniciar passeio' : 'Acompanhar ao vivo';
+    if (c.status === 'em_andamento') {
+      return c.papel === 'prestador' ? 'Continuar passeio' : 'Acompanhar ao vivo';
+    }
+    return c.status === 'concluida' && c.iniciadoEm ? 'Ver trajeto' : null;
+  }
+
+  private ehPasseio(c: Contratacao): boolean {
+    return c.prestador.tipo === 'passeador';
   }
 
   private comecou(c: Contratacao): boolean {

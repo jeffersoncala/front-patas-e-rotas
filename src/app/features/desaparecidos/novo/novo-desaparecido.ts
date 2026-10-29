@@ -11,6 +11,7 @@ import {
 import { Router, RouterLink } from '@angular/router';
 import { mensagemDeErro } from '../../../core/api';
 import { DesaparecidosService } from '../../../core/desaparecidos.service';
+import { paraDatetimeLocal } from '../../../core/formato';
 import { CENTRO_PADRAO, FalhaLocalizacao, localizar } from '../../../core/geo';
 import { REDUZIR_IMAGEM, TIPOS_ACEITOS } from '../../../core/imagem';
 import { ESPECIES, Especie, LatLng, PORTES, Porte } from '../../../core/models';
@@ -22,12 +23,6 @@ function noPassado(control: AbstractControl<string>): ValidationErrors | null {
   const data = new Date(control.value).getTime();
   if (Number.isNaN(data)) return { dataInvalida: true };
   return data <= Date.now() ? null : { futuro: true };
-}
-
-/** Formato do datetime-local, no fuso local. */
-function paraDatetimeLocal(data: Date): string {
-  const p = (n: number) => String(n).padStart(2, '0');
-  return `${data.getFullYear()}-${p(data.getMonth() + 1)}-${p(data.getDate())}T${p(data.getHours())}:${p(data.getMinutes())}`;
 }
 
 const AVISOS_LOCALIZACAO: Record<FalhaLocalizacao, string> = {

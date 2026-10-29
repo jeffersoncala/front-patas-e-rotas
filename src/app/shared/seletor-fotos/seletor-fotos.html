@@ -1,5 +1,5 @@
 <fieldset class="field fotos">
-  <legend class="field__label">Fotos do passeio</legend>
+  <legend class="field__label">{{ legenda() }}</legend>
   <input
     #seletor
     type="file"
@@ -11,7 +11,7 @@
   <div class="fotos__lista">
     @for (foto of fotos(); track $index) {
       <div class="foto">
-        <img [src]="src(foto)" [alt]="'Foto ' + ($index + 1) + ' do passeio'" />
+        <img [src]="src(foto)" [alt]="'Foto ' + ($index + 1)" />
         <button
           type="button"
           class="foto__remover"
@@ -22,7 +22,7 @@
         </button>
       </div>
     }
-    @if (fotos().length < maxFotos) {
+    @if (fotos().length < maxFotos()) {
       <button
         type="button"
         class="fotos__adicionar"
@@ -34,7 +34,7 @@
       </button>
     }
   </div>
-  <span class="field__hint">Até {{ maxFotos }} fotos.</span>
+  <span class="field__hint">Até {{ maxFotos() }} fotos.</span>
   @if (erro(); as mensagem) {
     <span class="field__error" role="alert">{{ mensagem }}</span>
   }

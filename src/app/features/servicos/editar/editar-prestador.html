@@ -1,0 +1,203 @@
+<section class="page">
+  <a class="voltar" routerLink="/servicos/meus"><span aria-hidden="true">←</span> Meus serviços</a>
+
+  <header>
+    <h1 class="page__title">{{ editando() ? 'Editar serviço' : 'Oferecer um serviço' }}</h1>
+    <p class="page__subtitle">Boas fotos e preços claros ajudam os tutores a escolher você.</p>
+  </header>
+
+  @if (naoEncontrado()) {
+    <p class="vazio">Esse serviço não existe ou não é seu.</p>
+  } @else if (editando() && !carregado()) {
+    <p class="vazio">Carregando…</p>
+  } @else {
+    <form class="editar" [formGroup]="form" (ngSubmit)="salvar()" novalidate>
+      <div class="card editar__campos">
+        @if (!editando()) {
+          <div class="field">
+            <label class="field__label" for="tipo">Serviço</label>
+            <select id="tipo" class="field__input" formControlName="tipo">
+              @for (t of tipos; track t.id) {
+                <option [value]="t.id">{{ t.label }}</option>
+              }
+            </select>
+          </div>
+        }
+
+        <div class="field">
+          <label class="field__label" for="nome">Nome na busca</label>
+          <input
+            id="nome"
+            class="field__input"
+            formControlName="nome"
+            placeholder="Seu nome ou o do petshop"
+            [class.field__input--invalid]="erros().nome"
+            [attr.aria-invalid]="erros().nome ? 'true' : null"
+            [attr.aria-describedby]="erros().nome ? 'nome-erro' : null"
+          />
+          @if (erros().nome; as erro) {
+            <p class="field__error" id="nome-erro" role="alert">{{ erro }}</p>
+          }
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="descricao"
+            >Sobre o serviço <span class="editar__opcional">(opcional)</span></label
+          >
+          <textarea
+            id="descricao"
+            class="field__input"
+            formControlName="descricao"
+            [placeholder]="descricaoExemplo()"
+          ></textarea>
+        </div>
+
+        <div class="editar__linha">
+          <div class="field">
+            <label class="field__label" for="contato">Telefone</label>
+            <input
+              id="contato"
+              class="field__input"
+              formControlName="contato"
+              inputmode="tel"
+              placeholder="(21) 99999-0000"
+              [class.field__input--invalid]="erros().contato"
+              [attr.aria-invalid]="erros().contato ? 'true' : null"
+              [attr.aria-describedby]="erros().contato ? 'contato-erro' : null"
+            />
+            @if (erros().contato; as erro) {
+              <p class="field__error" id="contato-erro" role="alert">{{ erro }}</p>
+            }
+          </div>
+          <div class="field">
+            <label class="field__label" for="bairro">Bairro</label>
+            <input
+              id="bairro"
+              class="field__input"
+              formControlName="bairro"
+              placeholder="Ex.: Botafogo"
+              [class.field__input--invalid]="erros().bairro"
+              [attr.aria-invalid]="erros().bairro ? 'true' : null"
+              [attr.aria-describedby]="erros().bairro ? 'bairro-erro' : null"
+            />
+            @if (erros().bairro; as erro) {
+              <p class="field__error" id="bairro-erro" role="alert">{{ erro }}</p>
+            }
+          </div>
+        </div>
+
+        <fieldset class="field precos" formArrayName="precos">
+          <legend class="field__label">Preços</legend>
+          @for (linha of form.controls.precos.controls; track linha; let i = $index) {
+            <div class="precos__linha" [formGroupName]="i">
+              <div class="field">
+                <label class="sr-only" [for]="'preco-descricao-' + i"
+                  >Descrição do preço {{ i + 1 }}</label
+                >
+                <input
+                  class="field__input"
+                  [id]="'preco-descricao-' + i"
+                  formControlName="descricao"
+                  [placeholder]="precoExemplo()"
+                  [class.field__input--invalid]="erros().precos[i]?.descricao"
+                />
+                @if (erros().precos[i]?.descricao; as erro) {
+                  <p class="field__error" role="alert">{{ erro }}</p>
+                }
+              </div>
+              <div class="field precos__valor">
+                <label class="sr-only" [for]="'preco-valor-' + i"
+                  >Valor do preço {{ i + 1 }}, em reais</label
+                >
+                <span class="precos__moeda" aria-hidden="true">R$</span>
+                <input
+                  class="field__input"
+                  [id]="'preco-valor-' + i"
+                  formControlName="valor"
+                  inputmode="decimal"
+                  placeholder="0,00"
+                  [class.field__input--invalid]="erros().precos[i]?.valor"
+                />
+                @if (erros().precos[i]?.valor; as erro) {
+                  <p class="field__error" role="alert">{{ erro }}</p>
+                }
+              </div>
+              <button
+                type="button"
+                class="btn btn--ghost btn--sm precos__remover"
+                [attr.aria-label]="'Remover preço ' + (i + 1)"
+                (click)="removerPreco(i)"
+              >
+                ×
+              </button>
+            </div>
+          }
+          @if (form.controls.precos.length < maxPrecos) {
+            <button type="button" class="link-btn precos__adicionar" (click)="adicionarPreco()">
+              + Adicionar preço
+            </button>
+          }
+          <p class="field__hint">O pagamento é combinado direto com o tutor.</p>
+        </fieldset>
+
+        <app-seletor-fotos
+          legenda="Fotos do serviço"
+          [maxFotos]="maxFotos"
+          [(fotos)]="fotos"
+          [(preparando)]="preparandoFotos"
+        />
+      </div>
+
+      <fieldset
+        class="card editar__mapa"
+        [attr.aria-describedby]="erros().posicao ? 'posicao-erro' : 'posicao-dica'"
+      >
+        <legend class="card__title">Região de atendimento</legend>
+        <p class="field__hint" id="posicao-dica">
+          Toque no mapa perto de onde você atende. Não precisa ser o endereço exato: os tutores veem
+          só a região.
+        </p>
+
+        <app-mapa
+          rotulo="Mapa para marcar a região de atendimento"
+          [centro]="centro()"
+          [zoom]="14"
+          [enquadrar]="false"
+          [marcadores]="marcadores()"
+          [class.editar__mapa--invalido]="erros().posicao"
+          (cliqueMapa)="escolherPosicao($event)"
+        />
+
+        @if (erros().posicao; as erro) {
+          <p class="field__error" id="posicao-erro" role="alert">{{ erro }}</p>
+        }
+        @if (erroLocalizacao(); as erro) {
+          <p class="alert" role="alert">{{ erro }}</p>
+        }
+
+        <button
+          type="button"
+          class="btn btn--secondary btn--sm"
+          [disabled]="localizando()"
+          (click)="usarMinhaLocalizacao()"
+        >
+          {{ localizando() ? 'Localizando…' : 'Usar minha localização' }}
+        </button>
+      </fieldset>
+
+      @if (erroGeral(); as erro) {
+        <p class="alert" role="alert">{{ erro }}</p>
+      }
+
+      <div class="editar__acoes">
+        @if (editando()) {
+          <button type="button" class="btn btn--danger" (click)="apagar()">Apagar serviço</button>
+        }
+        <a class="btn btn--ghost" routerLink="/servicos/meus">Cancelar</a>
+        <button type="submit" class="btn btn--primary" [disabled]="enviando() || preparandoFotos()">
+          {{ enviando() ? 'Salvando…' : editando() ? 'Salvar' : 'Cadastrar' }}
+        </button>
+      </div>
+    </form>
+  }
+</section>

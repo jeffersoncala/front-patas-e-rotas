@@ -1,0 +1,73 @@
+<section class="page">
+  <a class="voltar" routerLink="/servicos"><span aria-hidden="true">←</span> Serviços</a>
+
+  <header class="page__header">
+    <div>
+      <h1 class="page__title">Meus serviços</h1>
+      <p class="page__subtitle">
+        O que você oferece para a vizinhança. Os pedidos chegam em
+        <a routerLink="/servicos/pedidos" [queryParams]="{ papel: 'prestador' }">Meus pedidos</a>.
+      </p>
+    </div>
+  </header>
+
+  @if (erro(); as mensagem) {
+    <p class="alert" role="alert">{{ mensagem }}</p>
+  }
+
+  @if (meus().length) {
+    <ul class="list card">
+      @for (p of meus(); track p.id) {
+        <li class="item meu">
+          <span class="meu__capa" aria-hidden="true">
+            @if (p.capa) {
+              <img [src]="p.capa" alt="" />
+            } @else {
+              {{ p.tipoLabel[0] }}
+            }
+          </span>
+          <div class="item__info">
+            <a class="item__title" [routerLink]="['/servicos', p.id]">{{ p.nome }}</a>
+            <p class="item__meta">
+              {{ p.tipoLabel }} · {{ p.bairro }}
+              @if (!p.ativo) {
+                · <strong class="meu__pausado">pausado</strong>
+              }
+            </p>
+            <app-estrelas [nota]="p.notaMedia" [total]="p.totalAvaliacoes" />
+          </div>
+          <div class="meu__acoes">
+            <a class="chip" [routerLink]="['/servicos', p.id, 'editar']"
+              >Editar <span class="sr-only">{{ p.nome }}</span></a
+            >
+            <button
+              type="button"
+              class="chip"
+              [disabled]="alterando() === p.id"
+              (click)="alternarAtivo(p)"
+            >
+              {{ p.ativo ? 'Pausar' : 'Reativar' }} <span class="sr-only">{{ p.nome }}</span>
+            </button>
+          </div>
+        </li>
+      }
+    </ul>
+  } @else if (carregando()) {
+    <p class="vazio">Carregando…</p>
+  } @else {
+    <p class="vazio">Você ainda não oferece nenhum serviço.</p>
+  }
+
+  @if (!carregando() && disponiveis().length) {
+    <section class="card oferecer" aria-labelledby="oferecer-titulo">
+      <h2 id="oferecer-titulo" class="card__title">Oferecer um serviço</h2>
+      <div class="oferecer__opcoes">
+        @for (t of disponiveis(); track t.id) {
+          <a class="btn btn--secondary" routerLink="/servicos/novo" [queryParams]="{ tipo: t.id }">
+            {{ t.label }}
+          </a>
+        }
+      </div>
+    </section>
+  }
+</section>

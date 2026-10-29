@@ -11,6 +11,8 @@ interface LinkNav {
   /** Rótulo da barra do rodapé no celular, onde falta espaço. */
   curto?: string;
   exato: boolean;
+  /** Fora da barra do rodapé no celular, onde só cabem seis (o avatar do topo já leva lá). */
+  soNoTopo?: boolean;
 }
 
 /** Layout das telas internas: barra superior com a navegação e o conteúdo da rota. */
@@ -31,8 +33,11 @@ export class Shell {
     { rota: '/passeios/novo', label: 'Passear', exato: false },
     { rota: '/rotas', label: 'Rotas', exato: false },
     { rota: '/desaparecidos', label: 'Desaparecidos', curto: 'Perdidos', exato: false },
-    { rota: '/perfil', label: 'Perfil', exato: false },
+    { rota: '/servicos', label: 'Serviços', exato: false },
+    { rota: '/perfil', label: 'Perfil', exato: false, soNoTopo: true },
   ];
+
+  protected readonly linksRodape = this.links.filter((link) => !link.soNoTopo);
 
   constructor() {
     // O perfil guardado na sessão pode estar velho (ex.: editado em outro aparelho).

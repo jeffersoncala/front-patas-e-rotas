@@ -14,7 +14,7 @@ import {
   RAIO_PADRAO_KM,
   RAIOS_KM,
 } from '../../../core/desaparecidos.service';
-import { formatarDistancia, tempoRelativo } from '../../../core/formato';
+import { formatarDistancia, linksTelefone, tempoRelativo } from '../../../core/formato';
 import { CENTRO_PADRAO, FalhaLocalizacao, localizar } from '../../../core/geo';
 import { DesaparecidoProximo, ESPECIES, LatLng, PORTES } from '../../../core/models';
 import { Avatar } from '../../../shared/avatar/avatar';
@@ -28,14 +28,6 @@ const AVISOS_LOCALIZACAO: Record<FalhaLocalizacao, string> = {
   negada: 'Sem permissão para usar sua localização.',
   falhou: 'Não conseguimos achar sua localização agora.',
 };
-
-/** Links para ligar e chamar no WhatsApp, quando o contato parece um telefone brasileiro. */
-function linksTelefone(contato: string): { tel: string; whatsapp: string } | null {
-  const digitos = contato.replace(/\D/g, '');
-  const nacional = digitos.length > 11 && digitos.startsWith('55') ? digitos.slice(2) : digitos;
-  if (nacional.length < 10 || nacional.length > 11) return null;
-  return { tel: `tel:+55${nacional}`, whatsapp: `https://wa.me/55${nacional}` };
-}
 
 const rotulo = <T extends string>(opcoes: readonly { id: T; label: string }[], id: T) =>
   opcoes.find((o) => o.id === id)?.label ?? id;

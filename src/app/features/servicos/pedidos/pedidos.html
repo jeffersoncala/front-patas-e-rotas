@@ -1,0 +1,175 @@
+<section class="page">
+  <a class="voltar" routerLink="/servicos"><span aria-hidden="true">←</span> Serviços</a>
+
+  <header>
+    <h1 class="page__title">Meus pedidos</h1>
+    <p class="page__subtitle">Acompanhe os serviços que você pediu e os que pediram para você.</p>
+  </header>
+
+  <div class="tabs" role="group" aria-label="Quais pedidos">
+    <button
+      type="button"
+      class="tabs__item"
+      [attr.aria-pressed]="papel() === 'cliente'"
+      (click)="trocarPapel('cliente')"
+    >
+      Que fiz
+    </button>
+    <button
+      type="button"
+      class="tabs__item"
+      [attr.aria-pressed]="papel() === 'prestador'"
+      (click)="trocarPapel('prestador')"
+    >
+      Que recebi
+    </button>
+  </div>
+
+  @if (erro(); as mensagem) {
+    <p class="alert" role="alert">{{ mensagem }}</p>
+  }
+
+  <section aria-label="Pedidos" [attr.aria-busy]="carregando()">
+    @if (pedidos().length) {
+      <ul class="pedidos">
+        @for (p of pedidos(); track p.id) {
+          <li class="card pedido">
+            <div class="pedido__topo">
+              <span class="pedido__foto"
+                ><app-avatar [foto]="p.outro.foto" [nome]="p.outro.nome"
+              /></span>
+              <div class="item__info">
+                @if (p.papel === 'cliente') {
+                  <a class="item__title" [routerLink]="['/servicos', p.prestador.id]">{{
+                    p.prestador.nome
+                  }}</a>
+                } @else {
+                  <p class="item__title">{{ p.cliente.nome }}</p>
+                }
+                <p class="item__meta">{{ p.tipoLabel }} · {{ p.nomesPets }}</p>
+              </div>
+              <span class="pedido__status" [attr.data-status]="p.status">{{ p.statusLabel }}</span>
+            </div>
+
+            <p class="pedido__quando">
+              {{ p.quando }}
+              @if (p.ate) {
+                <br />até {{ p.ate }}
+              }
+            </p>
+
+            @if (p.mensagem) {
+              <p class="pedido__mensagem">“{{ p.mensagem }}”</p>
+            }
+
+            @if (p.status === 'pendente' || p.status === 'aceita') {
+              <p class="pedido__contato">
+                {{ p.papel === 'cliente' ? 'Contato do prestador' : 'Telefone do cliente' }}:
+                @if (p.telefone; as tel) {
+                  <a [href]="tel.tel">{{ p.contato }}</a>
+                  · <a [href]="tel.whatsapp" target="_blank" rel="noopener">WhatsApp</a>
+                } @else {
+                  {{ p.contato }}
+                }
+              </p>
+            }
+
+            @if (p.acoes.length) {
+              <div class="pedido__acoes">
+                @for (acao of p.acoes; track acao.status) {
+                  <button
+                    type="button"
+                    class="btn btn--sm"
+                    [class.btn--primary]="!acao.perigo"
+                    [class.btn--danger]="acao.perigo"
+                    [disabled]="ocupado() === p.id"
+                    (click)="executar(p, acao)"
+                  >
+                    {{ acao.label }}
+                  </button>
+                }
+              </div>
+            }
+
+            @if (p.aguardandoInicio) {
+              <p class="field__hint">Dá para concluir depois que o serviço começar.</p>
+            }
+
+            @if (avaliando() === p.id) {
+              <form class="avaliar" (submit)="$event.preventDefault(); enviarAvaliacao(p)">
+                <fieldset class="avaliar__estrelas">
+                  <legend class="field__label">Como foi o serviço?</legend>
+                  @for (n of estrelas; track n) {
+                    <label>
+                      <input
+                        type="radio"
+                        class="sr-only"
+                        name="nota-{{ p.id }}"
+                        [value]="n"
+                        [checked]="nota() === n"
+                        (change)="nota.set(n)"
+                      />
+                      <span [class.cheia]="n <= nota()" aria-hidden="true">★</span>
+                      <span class="sr-only">{{ n }} {{ n === 1 ? 'estrela' : 'estrelas' }}</span>
+                    </label>
+                  }
+                </fieldset>
+                <label class="sr-only" [for]="'comentario-' + p.id">Comentário</label>
+                <textarea
+                  class="field__input"
+                  [id]="'comentario-' + p.id"
+                  maxlength="500"
+                  placeholder="Conte como foi (opcional)"
+                  [value]="comentario()"
+                  (input)="comentario.set($any($event.target).value)"
+                ></textarea>
+                <div class="pedido__acoes">
+                  <button
+                    type="button"
+                    class="btn btn--ghost btn--sm"
+                    (click)="avaliando.set(null)"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    class="btn btn--primary btn--sm"
+                    [disabled]="ocupado() === p.id"
+                  >
+                    Enviar avaliação
+                  </button>
+                </div>
+              </form>
+            } @else if (p.avaliacao; as a) {
+              <div class="pedido__avaliacao">
+                <app-estrelas [nota]="a.nota" />
+                @if (a.comentario) {
+                  <p>{{ a.comentario }}</p>
+                }
+                @if (p.podeAvaliar) {
+                  <button type="button" class="link-btn" (click)="abrirAvaliacao(p)">
+                    Editar avaliação
+                  </button>
+                }
+              </div>
+            } @else if (p.podeAvaliar) {
+              <button type="button" class="btn btn--secondary btn--sm" (click)="abrirAvaliacao(p)">
+                Avaliar {{ p.prestador.nome }}
+              </button>
+            }
+          </li>
+        }
+      </ul>
+    } @else if (carregando()) {
+      <p class="vazio">Carregando…</p>
+    } @else if (papel() === 'cliente') {
+      <p class="vazio">
+        Você ainda não pediu nenhum serviço. <a routerLink="/servicos">Encontre um por perto</a>.
+      </p>
+    } @else {
+      <p class="vazio">
+        Nenhum pedido recebido. <a routerLink="/servicos/meus">Ofereça um serviço</a> para começar.
+      </p>
+    }
+  </section>
+</section>

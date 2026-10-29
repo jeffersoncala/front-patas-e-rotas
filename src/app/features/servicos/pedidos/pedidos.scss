@@ -1,0 +1,142 @@
+.pedidos {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.pedido {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.pedido__topo {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.pedido__foto {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #fff;
+  overflow: hidden;
+  background: var(--brand-500);
+  border-radius: 50%;
+}
+
+.pedido__status {
+  flex-shrink: 0;
+  padding: 0.3rem 0.7rem;
+  margin-left: auto;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--ink-700);
+  background: var(--surface-muted);
+  border: 1px solid var(--ink-100);
+  border-radius: var(--radius-pill);
+
+  &[data-status='pendente'] {
+    color: var(--brand-700);
+    background: var(--brand-100);
+    border-color: transparent;
+  }
+
+  &[data-status='aceita'],
+  &[data-status='concluida'] {
+    color: var(--accent-600);
+    background: var(--accent-100);
+    border-color: transparent;
+  }
+
+  &[data-status='recusada'],
+  &[data-status='cancelada'] {
+    color: var(--danger-600);
+    background: var(--danger-100);
+    border-color: transparent;
+  }
+}
+
+.pedido__quando {
+  font-weight: 700;
+  color: var(--ink-900);
+}
+
+.pedido__mensagem {
+  font-size: 0.9rem;
+  font-style: italic;
+  color: var(--ink-700);
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.pedido__contato {
+  font-size: 0.875rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.pedido__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+
+  .btn {
+    flex: 0 1 auto;
+  }
+}
+
+.pedido__avaliacao {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  align-items: flex-start;
+  padding: 0.75rem;
+  font-size: 0.9rem;
+  color: var(--ink-700);
+  background: var(--surface-muted);
+  border-radius: var(--radius-sm);
+}
+
+.avaliar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.avaliar__estrelas {
+  display: flex;
+  gap: 0.15rem;
+  padding: 0;
+  margin: 0;
+  border: 0;
+
+  legend {
+    margin-bottom: 0.3rem;
+  }
+
+  label {
+    font-size: 1.9rem;
+    line-height: 1;
+    color: var(--ink-300);
+    cursor: pointer;
+  }
+
+  .cheia {
+    color: #f5a623;
+  }
+
+  label:has(input:focus-visible) {
+    outline: 2px solid var(--brand-500);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}

@@ -1,0 +1,224 @@
+<section class="page">
+  <a class="voltar" routerLink="/servicos"><span aria-hidden="true">←</span> Serviços</a>
+
+  @if (prestador(); as p) {
+    <header class="perfil">
+      <span class="perfil__avatar"><app-avatar [foto]="p.fotoUsuario" [nome]="p.nome" /></span>
+      <div class="perfil__info">
+        <span class="tag">{{ tipoLabel() }}</span>
+        <h1 class="page__title">{{ p.nome }}</h1>
+        <app-estrelas [nota]="p.notaMedia" [total]="p.totalAvaliacoes" />
+        <p class="item__meta">{{ p.bairro }}</p>
+      </div>
+      @if (p.meu) {
+        <a class="btn btn--ghost perfil__editar" [routerLink]="['/servicos', p.id, 'editar']"
+          >Editar</a
+        >
+      }
+    </header>
+
+    @if (!p.ativo) {
+      <p class="alert" role="status">Este serviço está pausado e não recebe pedidos agora.</p>
+    }
+
+    @if (p.fotos.length) {
+      <div class="galeria">
+        @for (foto of p.fotos; track foto) {
+          <a [href]="urlFoto(foto)" target="_blank" rel="noopener">
+            <img
+              [src]="urlFoto(foto)"
+              [alt]="'Foto ' + ($index + 1) + ' de ' + p.nome"
+              loading="lazy"
+            />
+          </a>
+        }
+      </div>
+    }
+
+    <div class="detalhe">
+      <div class="detalhe__principal">
+        @if (p.descricao) {
+          <section class="card">
+            <h2 class="card__title">Sobre</h2>
+            <p class="detalhe__descricao">{{ p.descricao }}</p>
+          </section>
+        }
+
+        @if (p.precos.length) {
+          <section class="card">
+            <h2 class="card__title">Preços</h2>
+            <ul class="precos">
+              @for (preco of p.precos; track $index) {
+                <li>
+                  <span>{{ preco.descricao }}</span>
+                  <strong>{{ formatarPreco(preco.valorCentavos) }}</strong>
+                </li>
+              }
+            </ul>
+            <p class="field__hint">O pagamento é combinado direto com o prestador.</p>
+          </section>
+        }
+
+        <section class="card">
+          <h2 class="card__title">Contato e região</h2>
+          <p class="detalhe__contato">
+            @if (telefone(); as tel) {
+              <a [href]="tel.tel">{{ p.contato }}</a>
+              · <a [href]="tel.whatsapp" target="_blank" rel="noopener">WhatsApp</a>
+            } @else {
+              {{ p.contato }}
+            }
+          </p>
+          <app-mapa
+            class="detalhe__mapa"
+            [rotulo]="'Região de atendimento: ' + p.bairro"
+            [centro]="p.posicao"
+            [zoom]="14"
+            [enquadrar]="false"
+            [marcadores]="marcadores()"
+          />
+        </section>
+
+        <section class="card" aria-labelledby="avaliacoes-titulo">
+          <h2 id="avaliacoes-titulo" class="card__title">Avaliações</h2>
+          @if (avaliacoes().length) {
+            <ul class="list">
+              @for (a of avaliacoes(); track $index) {
+                <li class="item avaliacao">
+                  <span class="avaliacao__foto"
+                    ><app-avatar [foto]="a.fotoCliente" [nome]="a.cliente"
+                  /></span>
+                  <div class="item__info">
+                    <p class="item__title">{{ a.cliente }}</p>
+                    <p class="item__meta">
+                      <app-estrelas [nota]="a.nota" /> · {{ tempoRelativo(a.data) }}
+                    </p>
+                    @if (a.comentario) {
+                      <p class="avaliacao__comentario">{{ a.comentario }}</p>
+                    }
+                  </div>
+                </li>
+              }
+            </ul>
+          } @else {
+            <p class="vazio">Ainda sem avaliações. Só quem contratou pelo app pode avaliar.</p>
+          }
+        </section>
+      </div>
+
+      @if (!p.meu && p.ativo) {
+        <form class="card pedido" [formGroup]="form" (ngSubmit)="pedir()" novalidate>
+          <h2 class="card__title">Pedir {{ tipoLabel().toLowerCase() }}</h2>
+
+          @if (pets().length) {
+            <fieldset
+              class="field pedido__pets"
+              [attr.aria-describedby]="petsErro() ? 'pets-erro' : null"
+            >
+              <legend class="field__label">Para quais pets?</legend>
+              @for (pet of pets(); track pet.id) {
+                <label class="check">
+                  <input
+                    type="checkbox"
+                    [checked]="petsEscolhidos().has(pet.id)"
+                    (change)="alternarPet(pet.id)"
+                  />
+                  {{ pet.nome }}
+                </label>
+              }
+              @if (petsErro(); as erro) {
+                <p class="field__error" id="pets-erro" role="alert">{{ erro }}</p>
+              }
+            </fieldset>
+          } @else {
+            <p class="alert" role="status">
+              Cadastre seu pet no <a routerLink="/perfil">perfil</a> para pedir um serviço.
+            </p>
+          }
+
+          <div class="field">
+            <label class="field__label" for="inicio">{{
+              hospedagem() ? 'Entrada' : 'Data e hora'
+            }}</label>
+            <input
+              id="inicio"
+              type="datetime-local"
+              class="field__input"
+              formControlName="inicio"
+              [min]="agora"
+              [class.field__input--invalid]="inicioErro()"
+              [attr.aria-invalid]="inicioErro() ? 'true' : null"
+              [attr.aria-describedby]="inicioErro() ? 'inicio-erro' : null"
+            />
+            @if (inicioErro(); as erro) {
+              <p class="field__error" id="inicio-erro" role="alert">{{ erro }}</p>
+            }
+          </div>
+
+          @if (hospedagem()) {
+            <div class="field">
+              <label class="field__label" for="fim">Saída</label>
+              <input
+                id="fim"
+                type="datetime-local"
+                class="field__input"
+                formControlName="fim"
+                [min]="form.controls.inicio.value || agora"
+                [class.field__input--invalid]="fimErro()"
+                [attr.aria-invalid]="fimErro() ? 'true' : null"
+                [attr.aria-describedby]="fimErro() ? 'fim-erro' : null"
+              />
+              @if (fimErro(); as erro) {
+                <p class="field__error" id="fim-erro" role="alert">{{ erro }}</p>
+              }
+            </div>
+          }
+
+          <div class="field">
+            <label class="field__label" for="contato">Seu telefone</label>
+            <input
+              id="contato"
+              class="field__input"
+              formControlName="contato"
+              inputmode="tel"
+              placeholder="Ex.: (21) 99999-0000"
+              [class.field__input--invalid]="contatoErro()"
+              [attr.aria-invalid]="contatoErro() ? 'true' : null"
+              [attr.aria-describedby]="contatoErro() ? 'contato-erro' : 'contato-dica'"
+            />
+            @if (contatoErro(); as erro) {
+              <p class="field__error" id="contato-erro" role="alert">{{ erro }}</p>
+            } @else {
+              <p class="field__hint" id="contato-dica">Só o prestador vê.</p>
+            }
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="mensagem"
+              >Recado <span class="pedido__opcional">(opcional)</span></label
+            >
+            <textarea
+              id="mensagem"
+              class="field__input"
+              formControlName="mensagem"
+              placeholder="Rotina, cuidados, medicação…"
+            ></textarea>
+          </div>
+
+          @if (erroPedido(); as erro) {
+            <p class="alert" role="alert">{{ erro }}</p>
+          }
+
+          <button type="submit" class="btn btn--primary" [disabled]="enviando() || !pets().length">
+            {{ enviando() ? 'Enviando…' : 'Enviar pedido' }}
+          </button>
+          <p class="field__hint">O prestador confirma o pedido antes de qualquer pagamento.</p>
+        </form>
+      }
+    </div>
+  } @else if (naoEncontrado()) {
+    <p class="vazio">Esse serviço não existe mais.</p>
+  } @else {
+    <p class="vazio">Carregando…</p>
+  }
+</section>

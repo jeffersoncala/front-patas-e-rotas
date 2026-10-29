@@ -12,6 +12,8 @@ import { API_URL } from '../core/api';
 import { authInterceptor } from '../core/auth.interceptor';
 import { distanciaEntre, distanciaTrajeto } from '../core/geo';
 import {
+  Avaliacao,
+  Contratacao,
   DadosPet,
   Desaparecido,
   Encontro,
@@ -19,14 +21,18 @@ import {
   Passeio,
   Perfil,
   Pet,
+  Prestador,
   ResumoPerfil,
   Rota,
   juntarNomes,
 } from '../core/models';
 import {
+  AVALIACOES_EXEMPLO,
+  CONTRATACOES_EXEMPLO,
   DESAPARECIDOS_EXEMPLO,
   ENCONTROS_EXEMPLO,
   PASSEIOS_EXEMPLO,
+  PRESTADORES_EXEMPLO,
   ROTAS_EXEMPLO,
 } from './dados-exemplo';
 
@@ -68,6 +74,9 @@ interface Banco {
   encontros: Encontro[];
   passeios: Passeio[];
   desaparecidos: Desaparecido[];
+  prestadores: Prestador[];
+  avaliacoes: Record<number, Avaliacao[]>;
+  contratacoes: Contratacao[];
 }
 
 type Resposta = { status: number; body: unknown };
@@ -89,6 +98,9 @@ export function provideApiFalsa(perfil: Perfil = PERFIL_EXEMPLO): EnvironmentPro
     encontros: ENCONTROS_EXEMPLO,
     passeios: PASSEIOS_EXEMPLO,
     desaparecidos: DESAPARECIDOS_EXEMPLO,
+    prestadores: PRESTADORES_EXEMPLO,
+    avaliacoes: AVALIACOES_EXEMPLO,
+    contratacoes: CONTRATACOES_EXEMPLO,
   });
   const apiFalsa: HttpInterceptorFn = (req) => {
     // Cópia, como numa resposta de rede: quem recebe não enxerga mudanças posteriores no banco.
@@ -333,6 +345,117 @@ function responder(banco: Banco, req: HttpRequest<unknown>): Resposta {
         if (!d.meu) return { status: 403, body: { status: 403, mensagem: 'Proibido' } };
         d.encontrado = true;
         return ok(d);
+      });
+
+    case 'GET /prestadores': {
+      const centro: LatLng = [Number(req.params.get('lat')), Number(req.params.get('lng'))];
+      const raioKm = Number(req.params.get('raioKm') ?? 10);
+      const tipo = req.params.get('tipo');
+      const proximos = banco.prestadores
+        .filter((p) => p.ativo && (!tipo || p.tipo === tipo))
+        .map((p) => ({ ...p, distanciaKm: distanciaEntre(centro, p.posicao) }))
+        .filter((p) => p.distanciaKm <= raioKm)
+        .sort((a, b) => a.distanciaKm - b.distanciaKm);
+      return ok(proximos);
+    }
+    case 'GET /prestadores/meus':
+      return ok(banco.prestadores.filter((p) => p.meu));
+    case 'GET /prestadores/:id':
+      return achar(banco.prestadores, id, (p) => ok(p));
+    case 'GET /prestadores/:id/avaliacoes':
+      return achar(banco.prestadores, id, () => ok(banco.avaliacoes[id] ?? []));
+    case 'POST /prestadores': {
+      const { fotos, ...dados } = corpo as Pick<
+        Prestador,
+        'tipo' | 'nome' | 'descricao' | 'contato' | 'bairro' | 'posicao' | 'precos'
+      > & { fotos: string[] };
+      if (banco.prestadores.some((p) => p.meu && p.tipo === dados.tipo)) {
+        return { status: 409, body: { status: 409, mensagem: 'Você já oferece esse serviço' } };
+      }
+      const novo: Prestador = {
+        ...dados,
+        id: proximoId(banco.prestadores),
+        fotos: fotos.map((_, i) => `/fotos/prestador-${Date.now()}-${i}`),
+        fotoUsuario: perfil.foto,
+        ativo: true,
+        notaMedia: null,
+        totalAvaliacoes: 0,
+        meu: true,
+      };
+      banco.prestadores.push(novo);
+      return ok(novo, 201);
+    }
+    case 'PATCH /prestadores/:id':
+      return achar(banco.prestadores, id, (p) => {
+        if (!p.meu) return { status: 403, body: { status: 403, mensagem: 'Proibido' } };
+        const { fotos, ...campos } = corpo as Partial<Prestador>;
+        Object.assign(p, campos);
+        if (fotos) {
+          // Como a API: as que ficam vêm pelo caminho, as novas em data URL.
+          p.fotos = fotos.map((f, i) =>
+            f.startsWith('data:') ? `/fotos/prestador-${Date.now()}-${i}` : f,
+          );
+        }
+        return ok(p);
+      });
+    case 'DELETE /prestadores/:id':
+      return achar(banco.prestadores, id, () => {
+        banco.prestadores = banco.prestadores.filter((p) => p.id !== id);
+        return ok(null, 204);
+      });
+
+    case 'GET /contratacoes':
+      return ok(
+        banco.contratacoes.filter((c) => c.papel === (req.params.get('papel') ?? 'cliente')),
+      );
+    case 'POST /contratacoes': {
+      const dados = corpo as {
+        prestadorId: number;
+        petIds: number[];
+        inicio: string;
+        fim?: string;
+        contato: string;
+        mensagem: string;
+      };
+      const prestador = banco.prestadores.find((p) => p.id === dados.prestadorId);
+      if (!prestador) return naoEncontrado;
+      const nova: Contratacao = {
+        id: proximoId(banco.contratacoes),
+        status: 'pendente',
+        inicio: dados.inicio,
+        fim: dados.fim ?? null,
+        contato: dados.contato,
+        mensagem: dados.mensagem,
+        criadoEm: new Date().toISOString(),
+        papel: 'cliente',
+        cliente: { nome: perfil.tutor, foto: perfil.foto },
+        prestador: {
+          id: prestador.id,
+          tipo: prestador.tipo,
+          nome: prestador.nome,
+          contato: prestador.contato,
+          foto: prestador.fotoUsuario,
+        },
+        pets: perfil.pets
+          .filter((p) => dados.petIds.includes(p.id))
+          .map(({ id, nome, foto, especie, porte }) => ({ id, nome, foto, especie, porte })),
+        avaliacao: null,
+      };
+      banco.contratacoes.push(nova);
+      return ok(nova, 201);
+    }
+    case 'PUT /contratacoes/:id/status':
+      return achar(banco.contratacoes, id, (c) => {
+        c.status = (corpo as Pick<Contratacao, 'status'>).status;
+        return ok(c);
+      });
+    case 'PUT /contratacoes/:id/avaliacao':
+      return achar(banco.contratacoes, id, (c) => {
+        if (c.status !== 'concluida') {
+          return { status: 409, body: { status: 409, mensagem: 'Ainda não foi concluído' } };
+        }
+        c.avaliacao = corpo as Pick<Avaliacao, 'nota' | 'comentario'>;
+        return ok(c);
       });
 
     default:

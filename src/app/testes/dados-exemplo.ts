@@ -1,5 +1,14 @@
 import { distanciaTrajeto } from '../core/geo';
-import { Desaparecido, Encontro, LatLng, Passeio, Rota } from '../core/models';
+import {
+  Avaliacao,
+  Contratacao,
+  Desaparecido,
+  Encontro,
+  LatLng,
+  Passeio,
+  Prestador,
+  Rota,
+} from '../core/models';
 
 // Dados servidos pela API falsa dos testes (`api-falsa.ts`), no mesmo formato da API real.
 
@@ -355,7 +364,7 @@ export const DESAPARECIDOS_EXEMPLO: Desaparecido[] = [
     contato: '(21) 98888-1234',
     foto: null,
     // ~0,5 km do centro padrão.
-    posicao: [-22.9410, -43.1795],
+    posicao: [-22.941, -43.1795],
     vistoEm: aPartirDeAgora(-3 * HORA),
     encontrado: false,
     tutor: 'Carla',
@@ -392,5 +401,145 @@ export const DESAPARECIDOS_EXEMPLO: Desaparecido[] = [
     encontrado: false,
     tutor: 'Duda',
     meu: false,
+  },
+];
+
+/** Prestadores em volta do centro padrão do mapa (Botafogo); o 4 é do tutor de exemplo. */
+export const PRESTADORES_EXEMPLO: Prestador[] = [
+  {
+    id: 1,
+    tipo: 'passeador',
+    nome: 'Ana Passeios',
+    descricao: 'Passeios em grupos de até 3 cães.',
+    contato: '(21) 98888-1111',
+    bairro: 'Botafogo',
+    // ~0,5 km do centro padrão.
+    posicao: [-22.941, -43.1795],
+    precos: [
+      { descricao: 'Passeio de 30 min', valorCentavos: 2500 },
+      { descricao: 'Passeio de 1 h', valorCentavos: 4000 },
+    ],
+    fotos: ['/fotos/exemplo-ana-1'],
+    fotoUsuario: null,
+    ativo: true,
+    notaMedia: 5,
+    totalAvaliacoes: 1,
+    meu: false,
+  },
+  {
+    id: 2,
+    tipo: 'anfitriao',
+    nome: 'Casa do Rafael',
+    descricao: 'Quintal telado, sem outros pets.',
+    contato: 'rafael@exemplo.com',
+    bairro: 'Laranjeiras',
+    // ~4 km do centro padrão.
+    posicao: [-22.9725, -43.1795],
+    precos: [{ descricao: 'Diária', valorCentavos: 9000 }],
+    fotos: [],
+    fotoUsuario: null,
+    ativo: true,
+    notaMedia: null,
+    totalAvaliacoes: 0,
+    meu: false,
+  },
+  {
+    id: 3,
+    tipo: 'petshop',
+    nome: 'Banho da Júlia',
+    descricao: '',
+    contato: '(21) 98888-3333',
+    bairro: 'Tijuca',
+    // ~20 km do centro padrão.
+    posicao: [-22.7565, -43.1795],
+    precos: [],
+    fotos: [],
+    fotoUsuario: null,
+    ativo: true,
+    notaMedia: 3.5,
+    totalAvaliacoes: 2,
+    meu: false,
+  },
+  {
+    id: 4,
+    tipo: 'passeador',
+    nome: 'Jeff Passeios',
+    descricao: '',
+    contato: '(21) 97777-0000',
+    bairro: 'Flamengo',
+    // ~1 km do centro padrão.
+    posicao: [-22.9275, -43.1795],
+    precos: [{ descricao: 'Passeio', valorCentavos: 3000 }],
+    fotos: [],
+    fotoUsuario: null,
+    ativo: true,
+    notaMedia: null,
+    totalAvaliacoes: 0,
+    meu: true,
+  },
+];
+
+export const AVALIACOES_EXEMPLO: Record<number, Avaliacao[]> = {
+  1: [
+    {
+      nota: 5,
+      comentario: 'Pontual e mandou fotos.',
+      data: aPartirDeAgora(-2 * DIA),
+      cliente: 'Carla',
+      fotoCliente: null,
+    },
+  ],
+};
+
+const prestadorDoPedido = (id: number) => {
+  const { tipo, nome, contato, fotoUsuario } = PRESTADORES_EXEMPLO.find((p) => p.id === id)!;
+  return { id, tipo, nome, contato, foto: fotoUsuario };
+};
+
+const BOLOTA = { id: 1, nome: 'Bolota', foto: null, especie: 'cachorro', porte: 'medio' } as const;
+
+/** Dois pedidos que o tutor de exemplo fez e um que ele recebeu no próprio serviço. */
+export const CONTRATACOES_EXEMPLO: Contratacao[] = [
+  {
+    id: 1,
+    status: 'concluida',
+    inicio: aPartirDeAgora(-3 * DIA, 9),
+    fim: null,
+    contato: '(21) 97777-0000',
+    mensagem: 'Ele puxa no começo.',
+    criadoEm: aPartirDeAgora(-5 * DIA),
+    papel: 'cliente',
+    cliente: { nome: 'Jeff', foto: null },
+    prestador: prestadorDoPedido(1),
+    pets: [BOLOTA],
+    avaliacao: null,
+  },
+  {
+    id: 2,
+    status: 'pendente',
+    inicio: aPartirDeAgora(10 * DIA, 10),
+    fim: aPartirDeAgora(13 * DIA, 18),
+    contato: '(21) 97777-0000',
+    mensagem: '',
+    criadoEm: aPartirDeAgora(-HORA),
+    papel: 'cliente',
+    cliente: { nome: 'Jeff', foto: null },
+    prestador: prestadorDoPedido(2),
+    pets: [BOLOTA],
+    avaliacao: null,
+  },
+  {
+    id: 3,
+    status: 'pendente',
+    inicio: aPartirDeAgora(2 * DIA, 8),
+    fim: null,
+    contato: '(21) 96666-0000',
+    mensagem: 'Pode ser às 8h?',
+    criadoEm: aPartirDeAgora(-2 * HORA),
+    papel: 'prestador',
+    cliente: { nome: 'Bia', foto: null },
+    prestador: prestadorDoPedido(4),
+    pets: [{ id: 9, nome: 'Thor', foto: null, especie: 'cachorro', porte: 'grande' }],
+    avaliacao: null,
   },
 ];

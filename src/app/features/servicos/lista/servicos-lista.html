@@ -1,0 +1,107 @@
+<section class="page">
+  <header class="page__header">
+    <div>
+      <h1 class="page__title">Serviços</h1>
+      <p class="page__subtitle">
+        Passeadores, hospedagem e banho e tosa avaliados pela vizinhança.
+      </p>
+    </div>
+    <div class="servicos__atalhos">
+      <a class="btn btn--ghost" routerLink="/servicos/pedidos">Meus pedidos</a>
+      <a class="btn btn--primary" routerLink="/servicos/meus">Oferecer serviço</a>
+    </div>
+  </header>
+
+  <div class="tabs" role="group" aria-label="Tipo de serviço">
+    <button
+      type="button"
+      class="tabs__item"
+      [attr.aria-pressed]="tipo() === null"
+      (click)="filtrar(null)"
+    >
+      Todos
+    </button>
+    @for (t of tipos; track t.id) {
+      <button
+        type="button"
+        class="tabs__item"
+        [attr.aria-pressed]="tipo() === t.id"
+        (click)="filtrar(t.id)"
+      >
+        {{ t.plural }}
+      </button>
+    }
+  </div>
+
+  <div class="servicos__raio">
+    <span class="servicos__rotulo" id="raio-rotulo">Até</span>
+    <div class="tabs" role="group" aria-labelledby="raio-rotulo">
+      @for (raio of raios; track raio) {
+        <button
+          type="button"
+          class="tabs__item"
+          [attr.aria-pressed]="raioKm() === raio"
+          (click)="escolherRaio(raio)"
+        >
+          {{ raio }} km
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (semLocalizacao()) {
+    <p class="alert" role="status">
+      Sem acesso à sua localização: mostrando os serviços em volta do centro padrão.
+    </p>
+  }
+  @if (erro(); as mensagem) {
+    <p class="alert" role="alert">{{ mensagem }}</p>
+  }
+
+  <section aria-labelledby="lista-titulo" [attr.aria-busy]="carregando()">
+    <h2 id="lista-titulo" class="sr-only">Serviços num raio de {{ raioKm() }} km</h2>
+
+    @if (prestadores().length) {
+      <ul class="servicos">
+        @for (p of prestadores(); track p.id) {
+          <li class="card servico">
+            <a
+              class="servico__capa"
+              [routerLink]="['/servicos', p.id]"
+              tabindex="-1"
+              aria-hidden="true"
+            >
+              @if (p.capa) {
+                <img [src]="p.capa" alt="" loading="lazy" />
+              } @else {
+                <span class="servico__avatar"
+                  ><app-avatar [foto]="p.fotoUsuario" [nome]="p.nome"
+                /></span>
+              }
+            </a>
+            <div class="servico__info">
+              <span class="tag">{{ p.tipoLabel }}</span>
+              <a class="servico__nome" [routerLink]="['/servicos', p.id]">{{ p.nome }}</a>
+              <app-estrelas [nota]="p.notaMedia" [total]="p.totalAvaliacoes" />
+              <p class="item__meta">{{ p.bairro }} · a {{ p.distancia }}</p>
+              @if (p.aPartirDe) {
+                <p class="servico__preco">
+                  a partir de <strong>{{ p.aPartirDe }}</strong>
+                </p>
+              }
+            </div>
+          </li>
+        }
+      </ul>
+    } @else if (carregando()) {
+      <p class="vazio">{{ centro() ? 'Buscando serviços…' : 'Descobrindo onde você está…' }}</p>
+    } @else {
+      <p class="vazio">
+        Nenhum serviço num raio de {{ raioKm() }} km.
+        @if (raioKm() < raios[raios.length - 1]) {
+          Aumente o raio para procurar mais longe.
+        }
+      </p>
+    }
+  </section>
+</section>

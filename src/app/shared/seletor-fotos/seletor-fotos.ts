@@ -1,12 +1,12 @@
-import { ChangeDetectionStrategy, Component, inject, model, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, model, signal } from '@angular/core';
 import { urlFoto } from '../../core/api';
 import { LADO_FOTO_PASSEIO, REDUZIR_IMAGEM, TIPOS_ACEITOS } from '../../core/imagem';
 
-/** O mesmo limite da API. */
+/** O mesmo limite da API para os passeios. */
 export const MAX_FOTOS = 4;
 
 /**
- * Fotos de um passeio, com pré-visualização e remoção. As novas entram já reduzidas, em
+ * Fotos de um passeio (ou de um serviço), com pré-visualização e remoção. As novas entram já reduzidas, em
  * data URL; as que o passeio já tem ficam pelo caminho da API (`/fotos/<id>`).
  */
 @Component({
@@ -21,9 +21,10 @@ export class SeletorFotos {
   readonly fotos = model.required<string[]>();
   /** Verdadeiro enquanto reduz as fotos escolhidas; quem usa deve esperar para enviar. */
   readonly preparando = model(false);
+  readonly maxFotos = input(MAX_FOTOS);
+  readonly legenda = input('Fotos do passeio');
 
   protected readonly tiposAceitos = TIPOS_ACEITOS;
-  protected readonly maxFotos = MAX_FOTOS;
   protected readonly erro = signal<string | null>(null);
 
   protected src(foto: string): string | null {
@@ -35,10 +36,10 @@ export class SeletorFotos {
     // Limpa para que escolher o mesmo arquivo de novo também dispare o `change`.
     seletor.value = '';
     this.erro.set(null);
-    const vagas = MAX_FOTOS - this.fotos().length;
+    const vagas = this.maxFotos() - this.fotos().length;
     if (!arquivos.length || vagas <= 0) return;
     if (arquivos.length > vagas) {
-      this.erro.set(`Cabem até ${MAX_FOTOS} fotos; ficaram as primeiras.`);
+      this.erro.set(`Cabem até ${this.maxFotos()} fotos; ficaram as primeiras.`);
     }
 
     this.preparando.set(true);

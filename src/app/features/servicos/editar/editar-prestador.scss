@@ -1,0 +1,120 @@
+.editar {
+  display: grid;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.editar__campos,
+.editar__mapa {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  min-width: 0;
+  margin: 0;
+}
+
+.editar__linha {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.editar__opcional {
+  font-weight: 400;
+  color: var(--ink-500);
+}
+
+.precos {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0;
+  margin: 0;
+  border: 0;
+}
+
+.precos__linha {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 8rem auto;
+  gap: 0.5rem;
+  align-items: start;
+}
+
+.precos__valor {
+  position: relative;
+
+  .field__input {
+    padding-left: 2.3rem;
+  }
+}
+
+.precos__moeda {
+  position: absolute;
+  top: 0.8rem;
+  left: 0.85rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--ink-500);
+}
+
+.precos__remover {
+  flex: 0 0 auto;
+  min-width: 2.75rem;
+  font-size: 1.2rem;
+}
+
+.precos__adicionar {
+  align-self: flex-start;
+}
+
+.editar__mapa {
+  legend {
+    float: left; // mantém a legenda dentro do card
+    width: 100%;
+    padding: 0;
+  }
+
+  app-mapa {
+    height: 20rem;
+    cursor: crosshair;
+  }
+
+  .btn {
+    align-self: flex-start;
+  }
+}
+
+.editar__mapa--invalido {
+  outline: 2px solid var(--danger-600);
+  outline-offset: 2px;
+}
+
+.editar__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: flex-end;
+
+  .btn {
+    flex: 0 1 12rem;
+  }
+
+  .btn--danger {
+    margin-right: auto;
+  }
+}
+
+@media (min-width: 60rem) {
+  .editar {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  }
+
+  .editar__mapa {
+    position: sticky;
+    top: 5.5rem;
+  }
+
+  .editar__acoes {
+    grid-column: 1 / -1;
+  }
+}

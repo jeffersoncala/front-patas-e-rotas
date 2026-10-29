@@ -149,6 +149,74 @@ export interface ResumoPerfil {
   encontrosConfirmados: number;
 }
 
+export type TipoServico = 'passeador' | 'anfitriao' | 'petshop';
+
+/** Item da tabela de preços, ex. "Passeio de 30 min": 2500 (R$ 25,00). */
+export interface Preco {
+  descricao: string;
+  valorCentavos: number;
+}
+
+/** Quem oferece um serviço: passeador, anfitrião (hospedagem) ou petshop (banho e tosa). */
+export interface Prestador {
+  id: number;
+  tipo: TipoServico;
+  nome: string;
+  descricao: string;
+  contato: string;
+  bairro: string;
+  /** Região de atendimento. */
+  posicao: LatLng;
+  precos: Preco[];
+  /** Caminhos das fotos na API (`/fotos/<id>`), na ordem; use `urlFoto` para exibir. */
+  fotos: string[];
+  /** Foto de perfil de quem cadastrou. */
+  fotoUsuario: string | null;
+  /** Pausado não aparece na busca nem recebe pedidos. */
+  ativo: boolean;
+  /** De 1 a 5, com uma casa; null sem avaliações. */
+  notaMedia: number | null;
+  totalAvaliacoes: number;
+  /** Se quem está logado cadastrou. */
+  meu: boolean;
+}
+
+/** Item da busca por raio, com a distância até o centro da busca. */
+export interface PrestadorProximo extends Prestador {
+  distanciaKm: number;
+}
+
+export interface Avaliacao {
+  nota: number;
+  comentario: string;
+  /** Data em ISO 8601. */
+  data: string;
+  cliente: string;
+  fotoCliente: string | null;
+}
+
+export type StatusContratacao = 'pendente' | 'aceita' | 'recusada' | 'cancelada' | 'concluida';
+
+/** Pedido de um tutor (cliente) a um prestador. */
+export interface Contratacao {
+  id: number;
+  status: StatusContratacao;
+  /** Data e hora em ISO 8601. */
+  inicio: string;
+  /** Só na hospedagem. */
+  fim: string | null;
+  /** Telefone do cliente. */
+  contato: string;
+  mensagem: string;
+  criadoEm: string;
+  /** Se quem está logado fez (`cliente`) ou recebeu (`prestador`) o pedido. */
+  papel: 'cliente' | 'prestador';
+  cliente: { nome: string; foto: string | null };
+  prestador: Pick<Prestador, 'id' | 'tipo' | 'nome' | 'contato'> & { foto: string | null };
+  pets: (PetDoPasseio & Pick<Pet, 'especie' | 'porte'>)[];
+  avaliacao: Pick<Avaliacao, 'nota' | 'comentario'> | null;
+}
+
 export const ESPECIES: readonly { id: Especie; label: string }[] = [
   { id: 'cachorro', label: 'Cachorro' },
   { id: 'gato', label: 'Gato' },
@@ -177,4 +245,22 @@ export function descricaoPet(pet: Pick<Pet, 'especie' | 'raca' | 'idadeAnos' | '
   const porte = PORTES.find((p) => p.id === pet.porte)?.label.toLowerCase() ?? '';
   const idade = `${pet.idadeAnos} ${pet.idadeAnos === 1 ? 'ano' : 'anos'}`;
   return [especie, pet.raca, idade, `porte ${porte}`].filter(Boolean).join(' · ');
+}
+
+export const TIPOS_SERVICO: readonly { id: TipoServico; label: string; plural: string }[] = [
+  { id: 'passeador', label: 'Passeador', plural: 'Passeadores' },
+  { id: 'anfitriao', label: 'Hospedagem', plural: 'Hospedagem' },
+  { id: 'petshop', label: 'Banho e tosa', plural: 'Banho e tosa' },
+];
+
+export const STATUS_CONTRATACAO: Record<StatusContratacao, string> = {
+  pendente: 'Aguardando resposta',
+  aceita: 'Aceito',
+  recusada: 'Recusado',
+  cancelada: 'Cancelado',
+  concluida: 'Concluído',
+};
+
+export function rotuloServico(tipo: TipoServico): string {
+  return TIPOS_SERVICO.find((t) => t.id === tipo)?.label ?? tipo;
 }

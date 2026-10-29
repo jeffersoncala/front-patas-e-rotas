@@ -1,0 +1,87 @@
+.servicos__atalhos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+
+  .btn {
+    flex: 0 1 auto;
+  }
+}
+
+.servicos__raio {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+  align-items: center;
+}
+
+.servicos__rotulo {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--ink-700);
+}
+
+.servicos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  gap: 1rem;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.servico {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+}
+
+.servico__capa {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 16 / 9;
+  background: var(--surface-muted);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.servico__avatar {
+  display: grid;
+  place-items: center;
+  width: 4.5rem;
+  height: 4.5rem;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #fff;
+  overflow: hidden;
+  background: var(--brand-500);
+  border-radius: 50%;
+}
+
+.servico__info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  align-items: flex-start;
+  padding: 1rem 1.25rem 1.25rem;
+}
+
+.servico__nome {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--ink-900);
+}
+
+.servico__preco {
+  font-size: 0.875rem;
+  color: var(--ink-700);
+
+  strong {
+    color: var(--brand-700);
+  }
+}

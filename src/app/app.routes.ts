@@ -75,6 +75,41 @@ export const routes: Routes = [
           import('./features/desaparecidos/novo/novo-desaparecido').then((m) => m.NovoDesaparecido),
       },
       {
+        path: 'servicos',
+        title: 'Serviços · Patas & Rotas',
+        loadComponent: () =>
+          import('./features/servicos/lista/servicos-lista').then((m) => m.ServicosLista),
+      },
+      {
+        path: 'servicos/pedidos',
+        title: 'Meus pedidos · Patas & Rotas',
+        loadComponent: () => import('./features/servicos/pedidos/pedidos').then((m) => m.Pedidos),
+      },
+      {
+        path: 'servicos/meus',
+        title: 'Meus serviços · Patas & Rotas',
+        loadComponent: () =>
+          import('./features/servicos/meus/meus-servicos').then((m) => m.MeusServicos),
+      },
+      {
+        path: 'servicos/novo',
+        title: 'Oferecer serviço · Patas & Rotas',
+        loadComponent: () =>
+          import('./features/servicos/editar/editar-prestador').then((m) => m.EditarPrestador),
+      },
+      {
+        path: 'servicos/:id',
+        title: 'Serviço · Patas & Rotas',
+        loadComponent: () =>
+          import('./features/servicos/detalhe/prestador-detalhe').then((m) => m.PrestadorDetalhe),
+      },
+      {
+        path: 'servicos/:id/editar',
+        title: 'Editar serviço · Patas & Rotas',
+        loadComponent: () =>
+          import('./features/servicos/editar/editar-prestador').then((m) => m.EditarPrestador),
+      },
+      {
         path: 'passeios/novo',
         title: 'Registrar passeio · Patas & Rotas',
         loadComponent: () =>

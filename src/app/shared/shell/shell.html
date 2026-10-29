@@ -8,7 +8,10 @@
     </a>
 
     <nav class="nav" aria-label="Principal">
-      <ng-container [ngTemplateOutlet]="linksNav" />
+      <ng-container
+        [ngTemplateOutlet]="linksNav"
+        [ngTemplateOutletContext]="{ $implicit: links }"
+      />
     </nav>
 
     <a
@@ -27,10 +30,13 @@
 
 <!-- No celular a navegação fica numa barra fixa no rodapé, fora do header. -->
 <nav class="tabbar" aria-label="Principal">
-  <ng-container [ngTemplateOutlet]="linksNav" />
+  <ng-container
+    [ngTemplateOutlet]="linksNav"
+    [ngTemplateOutletContext]="{ $implicit: linksRodape }"
+  />
 </nav>
 
-<ng-template #linksNav>
+<ng-template #linksNav let-links>
   @for (link of links; track link.rota) {
     <a
       class="nav__link"

@@ -101,6 +101,10 @@
 .pet__nome {
   font-size: 1.15rem;
   font-weight: 800;
+
+  a {
+    color: inherit;
+  }
 }
 
 .pet__descricao {

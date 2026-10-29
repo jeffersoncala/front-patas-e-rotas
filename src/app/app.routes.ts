@@ -72,9 +72,7 @@ export const routes: Routes = [
         path: 'desaparecidos/novo',
         title: 'Cadastrar desaparecido · Patas & Rotas',
         loadComponent: () =>
-          import('./features/desaparecidos/novo/novo-desaparecido').then(
-            (m) => m.NovoDesaparecido,
-          ),
+          import('./features/desaparecidos/novo/novo-desaparecido').then((m) => m.NovoDesaparecido),
       },
       {
         path: 'passeios/novo',
@@ -87,6 +85,11 @@ export const routes: Routes = [
         title: 'Editar passeio · Patas & Rotas',
         loadComponent: () =>
           import('./features/passeios/editar/editar-passeio').then((m) => m.EditarPasseio),
+      },
+      {
+        path: 'pets/:id',
+        title: 'Perfil do pet · Patas & Rotas',
+        loadComponent: () => import('./features/pets/perfil-pet').then((m) => m.PerfilPet),
       },
       {
         path: 'perfil',

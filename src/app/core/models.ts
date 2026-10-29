@@ -111,6 +111,34 @@ export interface DesaparecidoProximo extends Desaparecido {
   distanciaKm: number;
 }
 
+/** Perfil público de um pet, visto por qualquer tutor (`/pets/:id`). */
+export interface PerfilPet {
+  pet: Pet;
+  tutor: string;
+  fotoTutor: string | null;
+  /** Se o pet é de quem está logado. */
+  meu: boolean;
+  totalPasseios: number;
+  kmTotal: number;
+  /** Quantas fotos há no álbum. */
+  totalFotos: number;
+}
+
+/** Foto do álbum do pet: vem de um passeio em que ele foi. */
+export interface FotoAlbum {
+  /** Caminho da foto na API (`/fotos/<id>`); use `urlFoto` para exibir. */
+  foto: string;
+  passeioId: number;
+  /** Data do passeio, em ISO 8601. */
+  data: string;
+}
+
+export interface PaginaAlbum {
+  itens: FotoAlbum[];
+  /** Mande como `antesDe` para a próxima página; null quando acabou. */
+  proximoCursor: string | null;
+}
+
 /** Números da home e do perfil, vindos de `/perfil/resumo`. */
 export interface ResumoPerfil {
   kmSemana: number;
@@ -141,4 +169,12 @@ export function juntarNomes(nomes: readonly string[]): string {
 /** Nomes dos pets do perfil ou do passeio, já juntos para exibir. */
 export function nomesPets(pets: readonly Pick<Pet, 'nome'>[]): string {
   return juntarNomes(pets.map((p) => p.nome));
+}
+
+/** "Cachorro · Vira-lata · 4 anos · porte médio". */
+export function descricaoPet(pet: Pick<Pet, 'especie' | 'raca' | 'idadeAnos' | 'porte'>): string {
+  const especie = ESPECIES.find((e) => e.id === pet.especie)?.label ?? '';
+  const porte = PORTES.find((p) => p.id === pet.porte)?.label.toLowerCase() ?? '';
+  const idade = `${pet.idadeAnos} ${pet.idadeAnos === 1 ? 'ano' : 'anos'}`;
+  return [especie, pet.raca, idade, `porte ${porte}`].filter(Boolean).join(' · ');
 }

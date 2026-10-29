@@ -14,7 +14,7 @@ import { mensagemDeErro } from '../../core/api';
 import { AuthService } from '../../core/auth.service';
 import { formatarDuracao, formatarKm, tempoRelativo } from '../../core/formato';
 import { REDUZIR_IMAGEM, TIPOS_ACEITOS } from '../../core/imagem';
-import { ESPECIES, Especie, PORTES, Pet, Porte, nomesPets } from '../../core/models';
+import { ESPECIES, Especie, PORTES, Pet, Porte, descricaoPet, nomesPets } from '../../core/models';
 import { PasseiosService } from '../../core/passeios.service';
 import { Avatar } from '../../shared/avatar/avatar';
 import { FotosPasseio } from '../../shared/fotos-passeio/fotos-passeio';
@@ -49,6 +49,7 @@ export class MeuPerfil {
   protected readonly portes = PORTES;
   protected readonly tiposAceitos = TIPOS_ACEITOS;
   protected readonly nomesPets = nomesPets;
+  protected readonly descricaoPet = descricaoPet;
 
   /** Passeio escolhido na lista fica em destaque no mapa. */
   protected readonly selecionado = signal<number | null>(null);
@@ -127,13 +128,6 @@ export class MeuPerfil {
 
   constructor() {
     this.passeiosService.carregar();
-  }
-
-  protected descricaoPet(pet: Pet): string {
-    const especie = ESPECIES.find((e) => e.id === pet.especie)?.label ?? '';
-    const porte = PORTES.find((p) => p.id === pet.porte)?.label.toLowerCase() ?? '';
-    const idade = `${pet.idadeAnos} ${pet.idadeAnos === 1 ? 'ano' : 'anos'}`;
-    return [especie, pet.raca, idade, `porte ${porte}`].filter(Boolean).join(' · ');
   }
 
   // --- Tutor -----------------------------------------------------------------

@@ -1,0 +1,107 @@
+<section class="page">
+  <a class="voltar" routerLink="/"><span aria-hidden="true">←</span> Voltar para o início</a>
+
+  @switch (estado()) {
+    @case ('carregando') {
+      <p class="vazio" role="status">Carregando perfil…</p>
+    }
+    @case ('nao-encontrado') {
+      <div class="card vazio" role="status">
+        <h1 class="page__title">Pet não encontrado</h1>
+        <p class="page__subtitle">Ele pode ter sido removido ou o link está incorreto.</p>
+      </div>
+    }
+    @case ('erro') {
+      <div class="card vazio" role="alert">
+        <h1 class="page__title">Não foi possível carregar o perfil</h1>
+        <p class="page__subtitle">Verifique sua conexão e tente de novo.</p>
+      </div>
+    }
+  }
+
+  @if (perfil(); as perfil) {
+    <header class="cabecalho card">
+      <span class="cabecalho__foto"
+        ><app-avatar [foto]="perfil.pet.foto" [nome]="perfil.pet.nome"
+      /></span>
+      <div class="cabecalho__info">
+        <h1 class="page__title">{{ perfil.pet.nome }}</h1>
+        <p class="page__subtitle">{{ descricaoPet(perfil.pet) }}</p>
+        @if (perfil.pet.bio) {
+          <p class="bio">{{ perfil.pet.bio }}</p>
+        }
+        <p class="tutor">
+          <span class="tutor__avatar"
+            ><app-avatar [foto]="perfil.fotoTutor" [nome]="perfil.tutor"
+          /></span>
+          @if (perfil.meu) {
+            Seu pet · <a routerLink="/perfil">editar no perfil</a>
+          } @else {
+            Tutor: <strong>{{ perfil.tutor }}</strong>
+          }
+        </p>
+      </div>
+    </header>
+
+    <section class="stats" aria-label="Números do pet">
+      <div class="stat">
+        <span class="stat__label">Passeios</span>
+        <strong class="stat__value" data-testid="total-passeios">{{ perfil.totalPasseios }}</strong>
+      </div>
+      <div class="stat">
+        <span class="stat__label">Distância</span>
+        <strong class="stat__value">{{ formatarKm(perfil.kmTotal) }} <small>km</small></strong>
+        <span class="stat__hint">no total</span>
+      </div>
+      <div class="stat">
+        <span class="stat__label">Fotos</span>
+        <strong class="stat__value" data-testid="total-fotos">{{ perfil.totalFotos }}</strong>
+        <span class="stat__hint">no álbum</span>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="album-titulo">
+      <header class="card__header">
+        <h2 id="album-titulo" class="card__title">Álbum</h2>
+      </header>
+      @if (fotos().length) {
+        <ul class="album">
+          @for (item of fotos(); track item.foto) {
+            <li>
+              <a [href]="urlFoto(item.foto)" target="_blank" rel="noopener">
+                <img
+                  [src]="urlFoto(item.foto)"
+                  [alt]="'Foto de ' + perfil.pet.nome + ' num passeio ' + tempoRelativo(item.data)"
+                  loading="lazy"
+                />
+              </a>
+            </li>
+          }
+        </ul>
+        @if (erroAlbum(); as erro) {
+          <p class="alert" role="alert">{{ erro }}</p>
+        }
+        @if (cursor()) {
+          <div class="mais">
+            <button
+              type="button"
+              class="btn btn--secondary"
+              [disabled]="carregandoMais()"
+              (click)="carregarMais()"
+            >
+              {{ carregandoMais() ? 'Carregando…' : 'Ver mais fotos' }}
+            </button>
+          </div>
+        }
+      } @else {
+        <p class="vazio">
+          {{
+            perfil.meu
+              ? 'Registre um passeio com fotos e elas aparecem aqui.'
+              : 'Ainda não há fotos de ' + perfil.pet.nome + '.'
+          }}
+        </p>
+      }
+    </section>
+  }
+</section>

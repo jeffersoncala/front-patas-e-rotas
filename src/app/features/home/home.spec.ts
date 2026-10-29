@@ -51,6 +51,13 @@ describe('Home', () => {
     expect(primeiro.querySelector('.post__avatar')?.textContent?.trim()).toBe('M');
   });
 
+  it('o nome e a foto do pet no feed levam ao perfil dele', () => {
+    const el = criar().nativeElement as HTMLElement;
+    const primeiro = el.querySelector('.post')!;
+    expect(primeiro.querySelector('a.post__pet')?.getAttribute('href')).toBe('/pets/11');
+    expect(primeiro.querySelector('a.post__avatar')?.getAttribute('href')).toBe('/pets/11');
+  });
+
   it('mostra as fotos do passeio no feed, só quando ele tem fotos', async () => {
     const fixture = criar();
     const el = fixture.nativeElement as HTMLElement;

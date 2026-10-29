@@ -172,7 +172,9 @@
               />
             } @else {
               <div class="pet__info">
-                <h3 class="pet__nome">{{ pet.nome }}</h3>
+                <h3 class="pet__nome">
+                  <a [routerLink]="['/pets', pet.id]">{{ pet.nome }}</a>
+                </h3>
                 <p class="pet__descricao">{{ descricaoPet(pet) }}</p>
                 @if (pet.bio) {
                   <p class="pet__bio">{{ pet.bio }}</p>

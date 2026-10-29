@@ -68,7 +68,9 @@
           <li class="post">
             <span class="post__avatares">
               @for (pet of passeio.pets.slice(0, 3); track pet.id) {
-                <span class="post__avatar"><app-avatar [foto]="pet.foto" [nome]="pet.nome" /></span>
+                <a class="post__avatar" [routerLink]="['/pets', pet.id]" tabindex="-1">
+                  <app-avatar [foto]="pet.foto" [nome]="pet.nome" />
+                </a>
               } @empty {
                 <span class="post__avatar">
                   <app-avatar [foto]="passeio.fotoTutor" [nome]="passeio.tutor" />
@@ -78,7 +80,10 @@
             <div class="post__body">
               <p class="post__meta">
                 @if (pets) {
-                  <strong>{{ pets }}</strong> com {{ tutor }}
+                  <!-- Sem espaço entre os nomes e o </strong>: "Mel e Thor com Ana". -->
+                  <!-- prettier-ignore -->
+                  <strong>@for (pet of passeio.pets; track pet.id) {<a class="post__pet" [routerLink]="['/pets', pet.id]">{{ pet.nome }}</a>{{ $index < $count - 2 ? ', ' : $index === $count - 2 ? ' e ' : '' }}}</strong>
+                  com {{ tutor }}
                 } @else {
                   <strong>{{ passeio.meu ? 'Você' : passeio.tutor }}</strong>
                 }

@@ -18,6 +18,7 @@ import {
   LatLng,
   Passeio,
   Perfil,
+  Pet,
   ResumoPerfil,
   Rota,
   juntarNomes,
@@ -272,6 +273,35 @@ function responder(banco: Banco, req: HttpRequest<unknown>): Resposta {
         return ok(p);
       });
 
+    case 'GET /pets/:id': {
+      const pet = petPorId(banco, id);
+      if (!pet) return naoEncontrado;
+      const passeios = passeiosDoPet(banco, id);
+      return ok({
+        pet: pet.dados,
+        tutor: pet.tutor,
+        fotoTutor: pet.fotoTutor,
+        meu: pet.meu,
+        totalPasseios: passeios.length,
+        kmTotal: passeios.reduce((total, p) => total + p.distanciaKm, 0),
+        totalFotos: passeios.reduce((total, p) => total + p.fotos.length, 0),
+      });
+    }
+    case 'GET /pets/:id/album': {
+      if (!petPorId(banco, id)) return naoEncontrado;
+      // Cursor simplificado: a posição na lista completa.
+      const inicio = Number(req.params.get('antesDe') ?? 0);
+      const limite = Number(req.params.get('limite') ?? 30);
+      const todas = passeiosDoPet(banco, id).flatMap((p) =>
+        p.fotos.map((foto) => ({ foto, passeioId: p.id, data: p.data })),
+      );
+      const fim = inicio + limite;
+      return ok({
+        itens: todas.slice(inicio, fim),
+        proximoCursor: fim < todas.length ? String(fim) : null,
+      });
+    }
+
     case 'GET /desaparecidos': {
       const centro: LatLng = [Number(req.params.get('lat')), Number(req.params.get('lng'))];
       const raioKm = Number(req.params.get('raioKm') ?? 5);
@@ -313,6 +343,30 @@ function responder(banco: Banco, req: HttpRequest<unknown>): Resposta {
 function achar<T extends { id: number }>(lista: T[], id: number, fazer: (item: T) => Resposta) {
   const item = lista.find((i) => i.id === id);
   return item ? fazer(item) : naoEncontrado;
+}
+
+/** Pet do perfil logado ou de outro tutor, montado a partir dos passeios do feed. */
+function petPorId(banco: Banco, id: number) {
+  const meu = banco.perfil.pets.find((p) => p.id === id);
+  if (meu) {
+    return { dados: meu, tutor: banco.perfil.tutor, fotoTutor: banco.perfil.foto, meu: true };
+  }
+  const passeio = banco.passeios.find((p) => p.pets.some((pet) => pet.id === id));
+  const doPasseio = passeio?.pets.find((pet) => pet.id === id);
+  if (!passeio || !doPasseio) return null;
+  const dados: Pet = {
+    ...doPasseio,
+    especie: 'cachorro',
+    raca: '',
+    idadeAnos: 3,
+    porte: 'medio',
+    bio: '',
+  };
+  return { dados, tutor: passeio.tutor, fotoTutor: passeio.fotoTutor, meu: false };
+}
+
+function passeiosDoPet(banco: Banco, id: number): Passeio[] {
+  return maisRecentes(banco.passeios.filter((p) => p.pets.some((pet) => pet.id === id)));
 }
 
 function resumo({ passeios, encontros }: Banco): ResumoPerfil {
